@@ -1,0 +1,106 @@
+        :root {
+            --primary-color: #DA0202;
+            --secondary-color: #FF2D36;
+            --accent-color: #FF6B6E;
+            --light-color: #FFF5F5;
+            --dark-color: #B50000;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .login-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        h5 {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        
+        .form-label {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(255, 45, 54, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--dark-color);
+            border-color: var(--dark-color);
+            transform: translateY(-2px);
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .alert-danger {
+            background-color: #FFEBEE;
+            border-color: #FFCDD2;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 767.98px) {
+            body {
+                padding: 0 40px;
+            }
+            
+            .login-container {
+                padding: 2rem;
+                margin: 2rem auto;
+            }
+        }

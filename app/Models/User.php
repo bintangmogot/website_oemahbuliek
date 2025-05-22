@@ -22,7 +22,16 @@ class User extends Authenticatable
         'email',
         'password',
     ];
-
+    
+    // Cek role
+public function getIsAdminAttribute(): bool
+{
+    return $this->role === 'admin';
+}
+    function isPegawai()
+    {
+        return $this->role === 'pegawai';
+    }
     /**
      * The attributes that should be hidden for serialization.
      *

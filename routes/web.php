@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboardController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +18,27 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+
+
+// Halaman index
+Route::get('/', fn() => view('index'))->name('home');
+
+// Routes untuk guest
+Route::middleware('guest')->group(function(){
+    Route::get('login', [LoginController::class,'showLoginForm'])->name('login');
+    Route::post('login', [LoginController::class,'login']);
 });
+
+// Logout
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Dashboard Admin
+Route::middleware(['auth','role:admin'])->prefix('admin')->group(function(){
+    Route::get('/', [DashboardController::class,'index']);
+});
+
+// Dashboard Pegawai
+Route::middleware(['auth','role:pegawai'])->prefix('pegawai')->group(function(){
+    Route::get('/', [PegawaiDashboard::class,'index']);
+});
+
