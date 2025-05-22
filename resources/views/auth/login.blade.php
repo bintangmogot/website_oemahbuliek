@@ -4,8 +4,12 @@
 @section('title', 'Login')
 
 @section('content')
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
+<link rel="stylesheet" href="/css/login.css">
+<div class="row justify-content-center mt-2">
+    <div class="col-md-5 login-container">
+        <div class="text-center mb-2">
+            <img src="/img/obl.png" alt="Logo Oemah Bu Liek" class="logo">
+        </div>
         <h2 class="mb-1 text-center">Login</h2>
         <h5 class="mb-4 text-center">Oemah Bu Liek App</h5>
         @if ($errors->any())

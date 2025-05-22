@@ -10,7 +10,6 @@
             background-color: var(--light-color);
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
-            display: flex;
             align-items: center;
         }
         
@@ -95,9 +94,6 @@
         }
         
         @media (max-width: 767.98px) {
-            body {
-                padding: 0 40px;
-            }
             
             .login-container {
                 padding: 2rem;
