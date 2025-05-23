@@ -1,0 +1,146 @@
+/* public/css/theme.css */
+
+/* 1. Variabel Tema */
+:root {
+  --primary-color:   #DA0202;
+  --secondary-color: #FF2D36;
+  --accent-color:    #FF6B6E;
+  --light-color:     #FFF5F5;
+  --dark-color:      #B50000;
+
+  --font-sans:  'Josefin Sans', sans-serif;
+  --font-serif: 'Abhaya Libre', serif;
+
+  --spacer: 1rem;
+}
+
+/* 2. Global Reset / Base */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  line-height: 1.6;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+p {
+  margin-bottom: 1rem;
+}
+
+/* 3. Utility Colors */
+.text-primary   { color: var(--primary-color)   !important; }
+.text-secondary { color: var(--secondary-color) !important; }
+.text-accent    { color: var(--accent-color)    !important; }
+.text-dark      { color: var(--dark-color)      !important; }
+
+.bg-primary     { background-color: var(--primary-color)   !important; }
+.bg-secondary   { background-color: var(--secondary-color) !important; }
+.bg-accent      { background-color: var(--accent-color)    !important; }
+.bg-light       { background-color: var(--light-color)     !important; }
+.bg-dark        { background-color: var(--dark-color)      !important; }
+
+/* 4. Typography */
+.lead {
+  font-size: 1.25rem;
+  font-weight: 300;
+}
+
+.text-uppercase { text-transform: uppercase !important; }
+.text-center    { text-align: center !important; }
+.text-right     { text-align: right !important; }
+.text-left      { text-align: left !important; }
+
+/* 5. Spacing Utilities */
+.my-1 { margin-top: calc(var(--spacer) * 0.25) !important; margin-bottom: calc(var(--spacer) * 0.25) !important; }
+.my-2 { margin-top: calc(var(--spacer) * 0.5)  !important; margin-bottom: calc(var(--spacer) * 0.5)  !important; }
+.my-3 { margin-top: var(--spacer)             !important; margin-bottom: var(--spacer)             !important; }
+.my-4 { margin-top: calc(var(--spacer) * 1.5) !important; margin-bottom: calc(var(--spacer) * 1.5) !important; }
+.p-3  { padding: var(--spacer) !important; }
+.p-4  { padding: calc(var(--spacer) * 1.5) !important; }
+
+/* 6. Buttons */
+.btn-theme {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border-radius: 0.25rem;
+  padding: 0.75rem 1.5rem;
+  transition: background-color 0.2s ease;
+  text-decoration: none;
+}
+.btn-theme.primary {
+  background-color: var(--light-color);
+  color: var(--dark-color);
+  border: none;
+}
+.btn-theme.primary:hover {
+  background-color: var(--dark-color);
+  color: var(--light-color);
+}
+
+.btn-theme.secondary {
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+}
+.btn-theme.outline-light {
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+}
+.btn-theme.outline-light:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* 7. Sections & Containers */
+.section {
+  padding: calc(var(--spacer) * 2) 0;
+}
+.section-alt {
+  background-color: var(--light-color);
+}
+.container-narrow {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 var(--spacer);
+}
+
+/* 8. Card */
+.card-theme {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+.card-header-theme {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: var(--spacer);
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+.card-body {
+  padding: var(--spacer);
+}
+
+/* 9. Utilities khusus div/section */
+.div-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 10. Responsive typography */
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 4rem;
+  }
+}

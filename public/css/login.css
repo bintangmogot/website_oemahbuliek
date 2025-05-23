@@ -1,18 +1,4 @@
-        :root {
-            --primary-color: #DA0202;
-            --secondary-color: #FF2D36;
-            --accent-color: #FF6B6E;
-            --light-color: #FFF5F5;
-            --dark-color: #B50000;
-        }
-        
-        body {
-            background-color: var(--light-color);
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            align-items: center;
-        }
-        
+
         .login-container {
             background-color: white;
             border-radius: 15px;

@@ -7,6 +7,8 @@ use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboardControll
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
 
+use App\Http\Controllers\HomeController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -21,9 +23,8 @@ use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
 
 
 // Halaman index
-Route::get('/', fn() => view('index'))->name('home');
+Route::get('/', [HomeController::class, 'index']);
 
-// Routes untuk guest
 Route::middleware('guest')->group(function(){
     Route::get('login', [LoginController::class,'showLoginForm'])->name('login');
     Route::post('login', [LoginController::class,'login']);
