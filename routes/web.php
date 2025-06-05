@@ -2,9 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboardController;
-use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
 
 use App\Http\Controllers\HomeController;
@@ -35,7 +33,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 
 // Dashboard Admin
 Route::middleware(['auth','role:admin'])->prefix('admin')->group(function(){
-    Route::get('/', [DashboardController::class,'index']);
+    Route::get('/', [AdminDashboard::class,'index']);
 });
 
 // Dashboard Pegawai

@@ -11,7 +11,7 @@
 
     @stack('styles')
 
-<title>@yield('title')</title>
+<title>@yield('title') | Oemah Bu Liek</title>
 
 </head>
 <body>

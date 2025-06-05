@@ -17,10 +17,13 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $table = 'users';
+    protected $primaryKey = 'id';
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role', 
     ];
     
     // Cek role
@@ -50,4 +53,11 @@ public function getIsAdminAttribute(): bool
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+
+        // Relasi one-to-one dengan Pegawai
+    public function relationtopegawai()
+    {
+        return $this->hasOne(Pegawai::class, 'id_akun', 'id');
+    }
 }

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="/css/login.css">
 
 {{-- container form --}}
-<div class="row justify-content-center mt-2">
+<div class="row justify-content-center mt-3 px-3">
     <div class="col-md-5 login-container">
         <div class="text-center mb-2">
             <img src="/img/obl.png" alt="Logo Oemah Bu Liek" class="logo">
