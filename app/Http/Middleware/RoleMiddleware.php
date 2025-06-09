@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\DB;
 
 class RoleMiddleware
 {
@@ -23,14 +24,14 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        $user = auth()->user();
+        $users = DB::table('users')->where('email', session('email'))->get();
         
         // Cek apakah role user sesuai
-        if ($user->role !== $role) {
+        if ($users[0]->role !== $role) {
             // Redirect ke dashboard yang sesuai dengan role user
-            if ($user->role === 'admin') {
+            if ($users[0]->role === 'admin') {
                 return redirect('/admin')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-            } elseif ($user->role === 'pegawai') {
+            } elseif ($users[0]->role === 'pegawai') {
                 return redirect('/pegawai')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
             }
             

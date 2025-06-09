@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
+use Illuminate\Support\Facades\DB;
 
 use App\Http\Controllers\HomeController;
 
@@ -18,6 +19,14 @@ use App\Http\Controllers\HomeController;
 |
 */
 
+
+Route::get('/test-role', function () {
+$users = DB::table('users')->where('email', 'admin@resto.test')->get();
+    
+
+    // return $this->role === 'admin';
+    print_r(  $users[0]->role);
+});
 
 
 // Halaman index

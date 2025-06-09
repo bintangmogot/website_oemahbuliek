@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::table('pegawai', function (Blueprint $table) {
             // Pastikan nama tabel dan kolom sesuai yang ada di database
             $table->foreign('id_akun')
-                  ->references('id')  // atau 'id' jika primary key adalah 'id'
+                  ->references('email')  // atau 'id' jika primary key adalah 'id'
                   ->on('users')        // pastikan nama tabel benar
                   ->onDelete('cascade');
         });

@@ -10,7 +10,7 @@ class Pegawai extends Model
     use HasFactory;
 
     protected $table = 'pegawai';
-    protected $primaryKey = 'id_pegawai';
+    protected $primaryKey = 'id';
     public $timestamps = false;
     
     protected $fillable = [
@@ -24,7 +24,7 @@ class Pegawai extends Model
     // Relasi dengan AkunUser
     public function relationtoUser()
     {
-        return $this->belongsTo(User::class, 'id_akun', 'id');
+        return $this->belongsTo(User::class, 'id_akun', 'email');
     }
 
 }

@@ -10,8 +10,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('pegawai', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('id_akun')->unique(); 
+            $table->id('id'); // Primary key
+            $table->string('id_akun', 50)->unique(); 
             $table->string('nama_lengkap');
             $table->string('jabatan', 50);
             $table->date('tgl_masuk');
@@ -31,14 +31,14 @@ return new class extends Migration
                 DECLARE user_exists INT DEFAULT 0;
                 
                 -- Cek apakah user ada
-                SELECT COUNT(*) INTO user_exists FROM users WHERE id = NEW.id_akun;
+                SELECT COUNT(*) INTO user_exists FROM users WHERE email = NEW.id_akun;
                 
                 IF user_exists = 0 THEN
                     SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = "User dengan ID tersebut tidak ditemukan";
                 END IF;
                 
                 -- Ambil role user
-                SELECT role INTO user_role FROM users WHERE id = NEW.id_akun;
+                SELECT role INTO user_role FROM users WHERE email = NEW.id_akun;
                 
                 -- Validasi role
                 IF user_role != "pegawai" THEN
@@ -57,14 +57,14 @@ return new class extends Migration
                 DECLARE user_exists INT DEFAULT 0;
                 
                 -- Cek apakah user ada
-                SELECT COUNT(*) INTO user_exists FROM users WHERE id = NEW.id_akun;
+                SELECT COUNT(*) INTO user_exists FROM users WHERE email = NEW.id_akun;
                 
                 IF user_exists = 0 THEN
                     SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = "User dengan ID tersebut tidak ditemukan";
                 END IF;
                 
                 -- Ambil role user
-                SELECT role INTO user_role FROM users WHERE id = NEW.id_akun;
+                SELECT role INTO user_role FROM users WHERE email = NEW.id_akun;
                 
                 -- Validasi role
                 IF user_role != "pegawai" THEN
