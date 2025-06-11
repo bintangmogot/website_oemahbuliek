@@ -12,10 +12,8 @@ class HomeController extends Controller
         if (Auth::check()) {
             $users = DB::table('users')->where('email', session('email'))->get();
             // Cek role user
-            if ($users[0]->role == 'admin') {
-                return redirect('/admin');
-            } else {
-                return redirect('/pegawai');
+            if ($users[0]->role == 'admin' || 'pegawai') {
+                return redirect('/dashboard');
             }
         }
 

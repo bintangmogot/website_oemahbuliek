@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('pegawai', function (Blueprint $table) {
             $table->id('id'); // Primary key
-            $table->string('id_akun', 50)->unique(); 
+            $table->string('id_akun', 100)->unique(); 
             $table->string('nama_lengkap');
             $table->string('jabatan', 50);
             $table->date('tgl_masuk');
@@ -78,9 +78,11 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('pegawai');
+
         // Drop triggers saat rollback
         DB::unprepared('DROP TRIGGER IF EXISTS check_pegawai_role_insert');
         DB::unprepared('DROP TRIGGER IF EXISTS check_pegawai_role_update');
+
+        Schema::dropIfExists('pegawai');
     }
 };

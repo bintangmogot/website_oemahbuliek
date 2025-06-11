@@ -1,14 +1,14 @@
 <?php
-namespace App\Http\Controllers\Pegawai;
+// namespace App\Http\Controllers\Pegawai;
 
-use App\Http\Controllers\Controller;
+// use App\Http\Controllers\Controller;
 
-class DashboardController extends Controller
-{
-    public function index()
-    {
-        return view('pegawai.dashboard');
-    }
+// class DashboardController extends Controller
+// {
+//     public function index()
+//     {
+//         return view('dashboard.pegawai.dashboard');
+//     }
 
     
-}
+// }

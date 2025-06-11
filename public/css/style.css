@@ -7,6 +7,15 @@
   --accent-color:    #FF6B6E;
   --light-color:     #FFF5F5;
   --dark-color:      #B50000;
+  --info-color:    #253D90; 
+  --error-color:     #DC3545; /* Merah untuk error */
+  --success-color:   #28A745; /* Hijau untuk sukses */
+  --warning-color:   #FFC107; /* Kuning untuk peringatan */
+  --white-color:     #FFFFFF;
+  --black-color:     #000000;
+
+
+  
 
   --font-sans:  'Josefin Sans', sans-serif;
   --font-serif: 'Abhaya Libre', serif;
@@ -87,6 +96,22 @@ p {
   color: #fff;
   border: 2px solid #fff;
 }
+
+.btn-theme.info {
+  background-color: var(--info-color);
+  color: #fff;
+  border: none;
+  
+}
+/* Saat diklik */
+.btn-theme.info:focus,
+.btn-theme.info:active,
+.btn-theme.info.show {
+  background-color: var(--warning-color) !important;
+  color: var(--dark-color) !important;
+  box-shadow: none;
+}
+
 .btn-theme.outline-light {
   background: transparent;
   border: 2px solid #fff;
@@ -136,6 +161,28 @@ p {
 .flex-column {
   display: flex;
   flex-direction: column;
+}
+
+.dropdown-menu.custom {
+  background-color: var(--info-color);    /* biru tua */
+}
+.dropdown-menu.custom .dropdown-item {
+  color: var(--white-color);
+  padding: .75rem 1.25rem;
+}
+
+.dropdown-menu.custom .dropdown-item:hover {
+  background-color: #1f3276;    
+  color: var(--white-color);
+}
+.dropdown-menu.custom .dropdown-item + .dropdown-item {
+  border-top: 1px solid var(--light-color); /* garis pemisah */
+}
+.dropdown-menu.custom .dropdown-item.delete {
+  background-color: var(--primary-color);    /* merah */
+}
+.dropdown-menu.custom .dropdown-item.delete:hover {
+  background-color: var(--dark-color);    
 }
 
 /* 10. Responsive typography */

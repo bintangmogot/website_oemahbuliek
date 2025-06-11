@@ -10,6 +10,12 @@
 {{-- css untuk halaman login --}}
 <link rel="stylesheet" href="/css/login.css">
 
+@if(session('warning'))
+  <div class="alert alert-warning text-center">
+    {{ session('warning') }}
+  </div>
+@endif
+
 {{-- container form --}}
 <div class="row justify-content-center mt-3 px-3">
     <div class="col-md-5 login-container">

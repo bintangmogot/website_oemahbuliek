@@ -4,7 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Pegawai\DashboardController as PegawaiDashboard;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\UserController;
+use App\Http\Middleware\RoleMiddleware;
+use Illuminate\Support\Facades\Auth;
 
 use App\Http\Controllers\HomeController;
 
@@ -20,15 +23,6 @@ use App\Http\Controllers\HomeController;
 */
 
 
-Route::get('/test-role', function () {
-$users = DB::table('users')->where('email', 'admin@resto.test')->get();
-    
-
-    // return $this->role === 'admin';
-    print_r(  $users[0]->role);
-});
-
-
 // Halaman index
 Route::get('/', [HomeController::class, 'index']);
 
@@ -40,13 +34,71 @@ Route::middleware('guest')->group(function(){
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
-// Dashboard Admin
-Route::middleware(['auth','role:admin'])->prefix('admin')->group(function(){
-    Route::get('/', [AdminDashboard::class,'index']);
+// GROUP UNTUK SEMUA ROUTE YANG BUTUH AUTHENTIKASI
+// Group untuk admin
+Route::middleware(['auth','role:admin'])
+     ->prefix('dashboard')
+     ->name('admin.')            // prefix nama route
+     ->group(function () {
+
+// CRUD User
+    Route::resource('user', UserController::class)
+         ->except(['show'])   // kita tidak butuh view detail
+         ->names([
+             'index'   => 'user.index',
+             'create'  => 'user.create',
+             'store'   => 'user.store',
+             'edit'    => 'user.edit',
+             'update'  => 'user.update',
+             'destroy' => 'user.destroy',
+         ]);
+
+    // Resource pegawai → otomatis index,create,store,edit,update,destroy
+    Route::resource('pegawai', PegawaiController::class);
+
+    // User pegawai
+    Route::get('user/create', [UserController::class,'create'])->name('user.create');
+    Route::post('user',       [UserController::class,'store'])->name('user.store');
 });
 
-// Dashboard Pegawai
-Route::middleware(['auth','role:pegawai'])->prefix('pegawai')->group(function(){
-    Route::get('/', [PegawaiDashboard::class,'index']);
+// Group untuk admin
+Route::middleware(['auth','role:admin'])
+     ->prefix('dashboard')
+     ->name('admin.')
+     ->group(function() {
+    Route::get('/user/profile', [UserController::class,'showSelf'])->name('profile');
 });
 
+// Group untuk pegawai
+Route::middleware(['auth','role:pegawai'])
+     ->prefix('dashboard')
+     ->name('pegawai.')
+     ->group(function() {
+    Route::get('profile', [PegawaiController::class,'showSelf'])->name('profile');
+});
+
+
+//DASHBOARD
+// Route untuk dashboard yang berbeda berdasarkan role
+Route::get('/dashboard', function () {
+    if (!session()->has('email') || !session()->has('nama_user')) {
+        return redirect('/login');
+    }
+
+    // Ambil data user berdasarkan email yang disimpan di session
+    $email = session('email');
+    $user = \App\Models\User::where('email', $email)->first();
+
+    if (!$user) {
+        abort(403, 'Akun tidak ditemukan.');
+    }
+
+    // Cek role dan tampilkan view sesuai role
+    if ($user->role === 'admin') {
+        return view('dashboard.admin');
+    } elseif ($user->role === 'pegawai') {
+        return view('dashboard.pegawai');
+    }
+
+    abort(403, 'Role tidak dikenali.');
+});

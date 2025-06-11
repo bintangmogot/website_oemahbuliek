@@ -9,13 +9,17 @@ use PhpParser\Node\Expr\Print_;
 
 class LoginController extends Controller
 {
-    // Fungsi untuk menampilkan form login
+
+    // FUNGSI UNTUK MENAMPILKAN FORM LOGIN
     public function showLoginForm()
     {
+        if (Auth::check()) {
+        return redirect('/dashboard');
+    }
         return view('auth.login');
     }
 
-    // Fungsi untuk menangani login
+    // FUNGSI UNTUK PROSES LOGIN
     public function login(Request $request)
 {
     // Validasi input dari form login
@@ -23,6 +27,8 @@ class LoginController extends Controller
         'email'    => 'required|email',
         'password' => 'required',
     ]);
+    
+
   // Menggunakan Auth::attempt untuk memverifikasi kredensial  
     // Jika berhasil, maka session akan di-regenerate
     if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -37,17 +43,31 @@ class LoginController extends Controller
         if ($users[0]->role == 'admin') {
             session(['email' => $users[0]->email]);
             session(['nama_user' => 'Admin']);
-            return redirect('/admin');
+            session(['role' => $users[0]->role]);
+
+            // return redirect('/admin');
         } else {
         $users = DB::table('pegawai')
       ->leftJoin('users', 'pegawai.id_akun', '=', 'users.email') // JOIN users ON pegawai.id_akun = users.email
       ->select('pegawai.*', 'users.*') // pilih kolom yang diinginkan
       ->where('users.email', $email) // filter berdasarkan email
       ->get();
-            session(['email' => $users[0]->email]);
-            session(['nama_user' => $users[0]->nama_lengkap]);
-            return redirect('/pegawai');
+      
+    if ($users->isEmpty()) {
+        // Tidak ada data pegawai dengan email ini
+        Auth::logout();
+        return redirect('/login')->with('warning', 'Akun Anda terdaftar sebagai pegawai, namun belum memiliki data pegawai. Silakan hubungi admin.');
+    }
+
+    $pegawai = $users[0]; // aman karena sudah dicek sebelumnya
+        session(['email' => $pegawai->email]);
+        session(['nama_user' => $pegawai->nama_lengkap]);
+        session(['role' => $users[0]->role]);
+        session(['jabatan' => $pegawai->jabatan]);
+        // return redirect('/pegawai');
         }
+
+    return redirect('/dashboard');
     
     }
     // Jika login gagal, kembalikan ke halaman login dengan pesan error
@@ -58,6 +78,7 @@ class LoginController extends Controller
 
 }
 
+// FUNGSI UNTUK LOGOUT
 public function logout(Request $request)
 {
     //diberi transaction agar jika ada error saat logout, tidak mengganggu proses lainnya

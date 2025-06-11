@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Pegawai extends Model
 {
@@ -26,5 +27,6 @@ class Pegawai extends Model
     {
         return $this->belongsTo(User::class, 'id_akun', 'email');
     }
+
 
 }

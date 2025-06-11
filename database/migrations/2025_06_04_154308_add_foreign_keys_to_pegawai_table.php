@@ -13,7 +13,9 @@ return new class extends Migration
             $table->foreign('id_akun')
                   ->references('email')  // atau 'id' jika primary key adalah 'id'
                   ->on('users')        // pastikan nama tabel benar
+                  ->onUpdate('cascade') 
                   ->onDelete('cascade');
+                  
         });
     }
 

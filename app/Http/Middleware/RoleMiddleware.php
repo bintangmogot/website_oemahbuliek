@@ -29,11 +29,12 @@ class RoleMiddleware
         // Cek apakah role user sesuai
         if ($users[0]->role !== $role) {
             // Redirect ke dashboard yang sesuai dengan role user
-            if ($users[0]->role === 'admin') {
-                return redirect('/admin')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-            } elseif ($users[0]->role === 'pegawai') {
-                return redirect('/pegawai')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-            }
+            if ($users[0]->role === 'admin' || $users[0]->role === 'pegawai') {
+                return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+            } 
+            // elseif ($users[0]->role === 'pegawai') {
+            //     return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+            // }
             
             // Jika role tidak dikenali, logout dan redirect ke login
             auth()->logout();
