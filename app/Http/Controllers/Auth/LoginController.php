@@ -53,6 +53,7 @@ class LoginController extends Controller
       ->where('users.email', $email) // filter berdasarkan email
       ->get();
       
+      
     if ($users->isEmpty()) {
         // Tidak ada data pegawai dengan email ini
         Auth::logout();

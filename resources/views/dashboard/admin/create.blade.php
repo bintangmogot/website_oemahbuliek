@@ -1,13 +1,12 @@
 @extends('layouts.app')
 @section('content')
+<x-form-layout title="Tambah User">
+  
+  @if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+  @endif
+
 <div class="container">
-  <h1>Tambah User</h1>
-@if(session('success'))
-  <div class="alert alert-success">{{ session('success') }}</div>
-@endif
-
-
-
   <form action="{{ route('admin.user.store') }}" method="POST">
     @csrf
 
@@ -35,4 +34,5 @@
     <button class="btn btn-success">Simpan</button>
   </form>
 </div>
+</x-form-layout>
 @endsection

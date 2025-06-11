@@ -5,11 +5,12 @@
   --primary-color:   #DA0202;
   --secondary-color: #FF2D36;
   --accent-color:    #FF6B6E;
+  --table-color:     #FFD9D9;
   --light-color:     #FFF5F5;
   --dark-color:      #B50000;
   --info-color:    #253D90; 
   --error-color:     #DC3545; /* Merah untuk error */
-  --success-color:   #28A745; /* Hijau untuk sukses */
+  --success-color:   #3F861E; /* Hijau untuk sukses */
   --warning-color:   #FFC107; /* Kuning untuk peringatan */
   --white-color:     #FFFFFF;
   --black-color:     #000000;
@@ -52,6 +53,7 @@ p {
 .bg-accent      { background-color: var(--accent-color)    !important; }
 .bg-light       { background-color: var(--light-color)     !important; }
 .bg-dark        { background-color: var(--dark-color)      !important; }
+
 
 /* 4. Typography */
 .lead {
@@ -97,6 +99,12 @@ p {
   border: 2px solid #fff;
 }
 
+.btn-theme.success {
+  background-color: var(--success-color);
+  color: #fff;
+  border: none;
+}
+
 .btn-theme.info {
   background-color: var(--info-color);
   color: #fff;
@@ -135,6 +143,14 @@ p {
   padding: 0 var(--spacer);
 }
 
+.table-striped {
+  --bs-table-striped-bg: var(--white-color);  /* untuk baris ganjil */
+  --bs-table-bg: var(--table-color);          /* untuk baris genap */
+}
+
+.table-light {
+  background-color: var(--table-color);
+}
 /* 8. Card */
 .card-theme {
   border: none;

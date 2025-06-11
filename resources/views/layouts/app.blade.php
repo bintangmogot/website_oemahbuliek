@@ -14,12 +14,12 @@
 <title>@yield('title') | Oemah Bu Liek</title>
 
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
   @include('partials.nav')
-  <div>@yield('content')</div>
+  <main class="flex-fill">@yield('content')</main>
 
   {{-- Footer (opsional) --}}
-  <footer class="bg-light text-center py-3">
+  <footer class="bg-light text-center py-3 mt-auto">
     &copy; {{ date('Y') }} {{ config('app.name') }}
   </footer>
 

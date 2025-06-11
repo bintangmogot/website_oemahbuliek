@@ -43,6 +43,8 @@ class User extends Authenticatable
         ->select('pegawai.*', 'users.*') // pilih kolom yang diinginkan
         ->where('users.email', $email) // filter berdasarkan email
         ->get();
+ 
+
 
     }
 
