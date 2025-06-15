@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PegawaiController;
+// use App\Http\Controllers\PegawaiController;
 
 
 /*
@@ -21,20 +21,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-// API Routes untuk testing CRUD
-Route::prefix('pegawai')->group(function () {
-    Route::get('/', [PegawaiController::class, 'apiIndex']);
-    Route::post('/', [PegawaiController::class, 'apiStore']);
-    Route::get('/{id}', [PegawaiController::class, 'apiShow']);
-    Route::put('/{id}', [PegawaiController::class, 'apiUpdate']);
-    Route::delete('/{id}', [PegawaiController::class, 'apiDestroy']);
-});
+// // API Routes untuk testing CRUD
+// Route::prefix('pegawai')->group(function () {
+//     Route::get('/', [PegawaiController::class, 'apiIndex']);
+//     Route::post('/', [PegawaiController::class, 'apiStore']);
+//     Route::get('/{id}', [PegawaiController::class, 'apiShow']);
+//     Route::put('/{id}', [PegawaiController::class, 'apiUpdate']);
+//     Route::delete('/{id}', [PegawaiController::class, 'apiDestroy']);
+// });
 
-// API dengan middleware auth (jika diperlukan)
-Route::middleware('auth:sanctum')->prefix('secure/pegawai')->group(function () {
-    Route::get('/', [PegawaiController::class, 'apiIndex']);
-    Route::post('/', [PegawaiController::class, 'apiStore']);
-    Route::get('/{id}', [PegawaiController::class, 'apiShow']);
-    Route::put('/{id}', [PegawaiController::class, 'apiUpdate']);
-    Route::delete('/{id}', [PegawaiController::class, 'apiDestroy']);
-});
+// // API dengan middleware auth (jika diperlukan)
+// Route::middleware('auth:sanctum')->prefix('secure/pegawai')->group(function () {
+//     Route::get('/', [PegawaiController::class, 'apiIndex']);
+//     Route::post('/', [PegawaiController::class, 'apiStore']);
+//     Route::get('/{id}', [PegawaiController::class, 'apiShow']);
+//     Route::put('/{id}', [PegawaiController::class, 'apiUpdate']);
+//     Route::delete('/{id}', [PegawaiController::class, 'apiDestroy']);
+// });

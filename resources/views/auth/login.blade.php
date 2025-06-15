@@ -11,9 +11,9 @@
 <link rel="stylesheet" href="/css/login.css">
 
 @if(session('warning'))
-  <div class="alert alert-warning text-center">
+<div class="alert alert-warning text-center">
     {{ session('warning') }}
-  </div>
+</div>
 @endif
 
 {{-- container form --}}
@@ -41,7 +41,7 @@
             <div class="mb-3">
                 <label for="email" class="form-label">Alamat Email</label>
                 <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" required autofocus>
+                    value="{{ old('email') }}" required autofocus>
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -51,7 +51,7 @@
             <div class="mb-3">
                 <label for="password" class="form-label">Kata Sandi</label>
                 <input type="password" name="password" id="password"
-                       class="form-control @error('password') is-invalid @enderror" required>
+                    class="form-control @error('password') is-invalid @enderror" required>
                 @error('password')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

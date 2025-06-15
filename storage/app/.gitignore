@@ -1,3 +1,125 @@
 *
 !public/
 !.gitignore
+
+
+# TEMPLATE INSERT TABEL DAN RELASI
+Berikut **template pola** yang bisa kamu **copy–paste dan sesuaikan** untuk resource apa pun (misal: JadwalShift, Produk, dsb), dengan aturan:
+
+* **Semua** yang sudah login (middleware `auth`) boleh **melihat** (`index`, `show`).
+* **Hanya admin** (middleware `role:admin`) yang boleh **create, store, edit, update, destroy**.
+
+---
+
+### 1. routes/web.php
+
+```php
+use App\Http\Controllers\YourResourceController;
+
+// —————— VIEW‐ONLY (index & show) ——————
+Route::middleware('auth')
+     ->prefix('dashboard')
+     ->name('resource.')       // ganti 'resource' menjadi prefix nama kamu (misal: 'jadwal.')
+     ->group(function () {
+         // Daftar item
+         Route::get('entities', [YourResourceController::class, 'index'])
+              ->name('index');
+         // Detail satu item
+         Route::get('entities/{entity}', [YourResourceController::class, 'show'])
+              ->name('show');
+     });
+
+// —————— ADMIN‐ONLY (create/store/edit/update/destroy) ——————
+Route::middleware(['auth','role:admin'])
+     ->prefix('dashboard')
+     ->name('admin.resource.') // ganti 'resource' sama seperti di atas
+     ->group(function () {
+         Route::resource('entities', YourResourceController::class)
+              ->except(['index','show'])
+              ->names([
+                  'create'  => 'create',
+                  'store'   => 'store',
+                  'edit'    => 'edit',
+                  'update'  => 'update',
+                  'destroy' => 'destroy',
+              ]);
+     });
+```
+
+> **Catatan**:
+>
+> * Ganti `YourResourceController`, `entities`, `{entity}`, dan nama‐nama prefix (`resource`, `admin.resource`) sesuai kebutuhan.
+> * Bila kamu tidak butuh `show()`, tinggal hilangkan juga dari bagian view‐only.
+
+---
+
+### 2. Controller: \_\_construct Middleware
+
+```php
+class YourResourceController extends Controller
+{
+    public function __construct()
+    {
+        // Semua method kecuali index & show → hanya admin
+        $this->middleware(['auth','role:admin'])
+             ->except(['index','show']);
+
+        // Method index & show → cukup login
+        $this->middleware('auth')
+             ->only(['index','show']);
+    }
+
+    public function index()
+    {
+        // ambil data untuk semua user
+    }
+
+    public function show(Model $entity)
+    {
+        // detail item
+    }
+
+    public function create()      { /* form add (admin) */ }
+    public function store(Request $r)   { /* simpan (admin) */ }
+    public function edit(Model $entity) { /* form edit (admin) */ }
+    public function update(Request $r, Model $entity) { /* update (admin) */ }
+    public function destroy(Model $entity) { /* hapus (admin) */ }
+}
+```
+
+---
+
+### 3. Blade Index (contoh dengan `<x-index-table>`)
+
+```blade
+<x-index-table
+  title="Daftar Entities"
+  :columns="[
+    ['label'=>'Kolom A','field'=>'field_a'],
+    ['label'=>'Kolom B','field'=>'field_b'],
+  ]"
+  :items="$entities"            {{-- data dari controller $entities = Model::paginate() --}}
+  :showActions="auth()->user()->role==='admin'"
+  :routes="[
+    'show'    => 'resource.show',
+    'edit'    => 'admin.resource.edit',
+    'destroy' => 'admin.resource.destroy',
+  ]"
+  routeKey="entity"
+/>
+```
+
+* Untuk **create** tombol, di view **admin** (`create`):
+
+  ```blade
+  <a href="{{ route('admin.resource.create') }}" class="btn btn-primary">Tambah</a>
+  ```
+* Jika kamu pakai **komponen** yang sama untuk `index`, `show`, dll, cukup sesuaikan `:routes` dan `routeKey`.
+
+---
+
+Dengan pola ini, setiap resource baru tinggal kamu **copy–paste**, ganti placeholder (`resource`, `entities`, `entity`, `YourResourceController`, dll), dan aksesnya otomatis:
+
+* `/dashboard/entities` & `/dashboard/entities/{entity}` → siapa saja yang login.
+* `/dashboard/entities/create`, `/entities/{entity}/edit`, dst → hanya admin.
+

@@ -23,11 +23,11 @@
         </p>
         <div class="d-flex justify-content-start gap-3 flex-wrap">
           <a href="{{ route('login') }}" 
-             class="btn-theme primary btn-lg underline-hover ">
+            class="btn-theme primary btn-lg underline-hover ">
             Masuk
           </a>
           <a href="https://wa.me/62895353811311" target="_blank"
-             class="btn-theme secondary outline-light btn-lg">
+            class="btn-theme secondary outline-light btn-lg">
             <i class="bi bi-whatsapp me-2"></i>WhatsApp
           </a>
         </div>

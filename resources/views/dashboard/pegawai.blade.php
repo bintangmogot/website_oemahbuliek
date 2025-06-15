@@ -1,14 +1,11 @@
-
 @extends('layouts.app')
 @section('title','Dashboard Pegawai')
 @section('content')
-@if(session('error'))
-  <div class="alert alert-danger">
-    {{ session('error') }}
-  </div>
-@endif
+<x-session-status/>
 
-<h1>Halo {{ session('nama_user') }}</h1>
-<h4>{{ Auth::user()->role }}</h4>
-<p>Ini halaman dashboard khusus pegawai.</p>
+<div class="container py-3">
+  <h1 class="mb-3">Halo, {{ session('nama_user') }}</h1>
+  <h4 class="text-muted mb-4">Role: {{ Auth::user()->role }}</h4>
+  <p>Ini halaman dashboard khusus pegawai.</p>
+</div>
 @endsection

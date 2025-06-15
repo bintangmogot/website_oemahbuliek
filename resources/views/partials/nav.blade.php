@@ -44,8 +44,9 @@
     <div class="profile-section">
       {{-- Profile Avatar --}}
       <div class="profile-avatar">
-        @if(auth()->user()->avatar)
-          <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Profile" class="avatar-img">
+        @if(auth()->user()->foto_profil)
+          <img src="{{ asset('storage/' . auth()->user()->foto_profil) }}"
+              alt="Profile" class="avatar-img">
         @else
           <div class="avatar-placeholder">
             <i class="fas fa-user"></i>
@@ -53,27 +54,16 @@
         @endif
       </div>
 
-@if(session('role') === 'admin')
-  <a href="{{ route('admin.profile') }}" style="text-decoration: none; color: inherit;" >
-    <div class="profile-info">
-        <h6 class="profile-name">{{ session('nama_user') }}</h6>
-        <span class="profile-role">
-          {{ session('role') }}
-        </span>
-      </div>
-  </a>
-@else
-    <a href="{{ route('pegawai.profile') }}" style="text-decoration: none; color: inherit;" >
-      <div class="profile-info">
-        <h6 class="profile-name">{{ session('nama_user') }}</h6>
-        <span class="profile-role">
-          {{ session('jabatan') }}
-        </span>
-      </div>
-    </a>
-  
-    @endif
+      <a href="{{ route('profile.me') }}">
+<h6 class="profile-name">{{ session('nama_user') }}</h6>
+<span class="profile-role">
+  {{ Auth::user()->role === 'admin'
+      ? 'Admin'
+      : Auth::user()->jabatan }}
+</span>
+</a>
   </div>
+
     @endauth
 
     {{-- Menu Navigation --}}
@@ -85,7 +75,7 @@
             <span>Dashboard</span>
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('admin/pesan*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/pesan*') ? 'active' : '' }}">
             <i class="fas fa-envelope"></i>
             <span>Pesan</span>
             @if(isset($unreadMessages) && $unreadMessages > 0)
@@ -93,12 +83,12 @@
             @endif
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('admin/pegawai*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/dashboard*') ? 'active' : '' }}">
             <i class="fas fa-users"></i>
             <span>Presensi Pegawai</span>
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('admin/inventaris*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">
             <i class="fas fa-box"></i>
             <span>Manajemen Inventaris</span>
           </a>
@@ -108,34 +98,29 @@
             <span>Manajemen User</span>
           </a>
           
-          <a href="{{ route('admin.pegawai.index') }}" class="menu-item {{ request()->is('dashboard/pegawai*') ? 'active' : '' }}">
-            <i class="fas fa-user-tie"></i>
-            <span>Data Pegawai</span>
-          </a>
-          
-          <a href="#" class="menu-item {{ request()->is('admin/kasir*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/kasir*') ? 'active' : '' }}">
             <i class="fas fa-cash-register"></i>
             <span>Kasir</span>
           </a>
 
         {{-- Menu untuk Pegawai --}}
         @else
-          <a href="/dashboard" class="menu-item {{ request()->is('pegawai') ? 'active' : '' }}">
+          <a href="/dashboard" class="menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('pegawai/presensi*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
             <i class="fas fa-clock"></i>
             <span>Presensi</span>
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('pegawai/inventaris*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">
             <i class="fas fa-box"></i>
             <span>Inventaris</span>
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('pegawai/kasir*') ? 'active' : '' }}">
+          <a href="#" class="menu-item {{ request()->is('dashboard/kasir*') ? 'active' : '' }}">
             <i class="fas fa-cash-register"></i>
             <span>Kasir</span>
           </a>
@@ -170,7 +155,7 @@
     {{-- Right Side Actions --}}
     <div class="navbar-actions">
       <div class="user-info">
-        <span class="user-name">{{ auth()->user()->name }}</span>
+        <span class="user-name">{{ auth()->user()->nama_lengkap }}</span>
       </div>
       
       {{-- Settings Button --}}

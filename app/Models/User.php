@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -22,43 +24,34 @@ class User extends Authenticatable
 //PENTING SUPAYA MENGGUNAKAN EMAIL SEBAGAI PRIMARY KEY DAN TIDAK AUTO INCREMENT KARENA EMAIL BUKAN ANGKA. 
 //LARAVEL MENGGUNAKAN ID AUTO INCREMENT SECARA DEFAULT
     protected $table = 'users';
-    protected $primaryKey = 'email';
-    public $incrementing = false;
-    protected $keyType = 'string';  
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';  
     protected $fillable = [
-        'email',
-        'password',
-        'role', 
+        'email','password','role',
+        'nama_lengkap','jabatan','tgl_masuk','no_hp','alamat','foto_profil'
     ];
     
     // Cek role
-    public static function getIsAdminAttribute()
-    {
-    $email = session('email');
+public static function getIsAdminAttribute()
+{
+    // Coba ambil dari session
+    $email = Session::get('email');
 
-    // Mengambil data dengan kondisi tertentu (WHERE)
-    $users = DB::table('users')->where('email', $email)->get();
-        $nama = DB::table('pegawai')
-        ->leftJoin('users', 'pegawai.id_akun', '=', 'users.email') // JOIN users ON pegawai.id_akun = users.email
-        ->select('pegawai.*', 'users.*') // pilih kolom yang diinginkan
-        ->where('users.email', $email) // filter berdasarkan email
-        ->get();
- 
-
-
+    if ($email) {
+        $user = DB::table('users')->where('email', $email)->first();
+        return $user && $user->role === 'admin';
     }
 
-        // Relasi one-to-one dengan Pegawai
-    public function relationtopegawai()
-    {
-        return $this->hasOne(Pegawai::class, 'id_akun', 'email');
+    // Fallback ke Auth user
+    if (Auth::check()) {
+        return Auth::user()->role === 'admin';
     }
 
+    // Tidak ada session atau auth
+    return false;
+}
 
-// public function isPegawai()
-//     {
-//          return 'pegawai';
-//     }
 
 
     /**

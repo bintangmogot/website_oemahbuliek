@@ -35,47 +35,26 @@ class LoginController extends Controller
         $request->session()->regenerate();
         $email = $credentials['email'];
         // Mengambil data dengan kondisi tertentu (WHERE)
-        $users = DB::table('users')->where('email', $email)->get();
-      
-        // $nama = $users->nama_lengkap;
-          
-        // Redirect berdasarkan role tanpa operator ternary
-        if ($users[0]->role == 'admin') {
-            session(['email' => $users[0]->email]);
-            session(['nama_user' => 'Admin']);
-            session(['role' => $users[0]->role]);
-
-            // return redirect('/admin');
-        } else {
-        $users = DB::table('pegawai')
-      ->leftJoin('users', 'pegawai.id_akun', '=', 'users.email') // JOIN users ON pegawai.id_akun = users.email
-      ->select('pegawai.*', 'users.*') // pilih kolom yang diinginkan
-      ->where('users.email', $email) // filter berdasarkan email
-      ->get();
-      
-      
-    if ($users->isEmpty()) {
-        // Tidak ada data pegawai dengan email ini
-        Auth::logout();
-        return redirect('/login')->with('warning', 'Akun Anda terdaftar sebagai pegawai, namun belum memiliki data pegawai. Silakan hubungi admin.');
-    }
-
-    $pegawai = $users[0]; // aman karena sudah dicek sebelumnya
-        session(['email' => $pegawai->email]);
-        session(['nama_user' => $pegawai->nama_lengkap]);
-        session(['role' => $users[0]->role]);
-        session(['jabatan' => $pegawai->jabatan]);
-        // return redirect('/pegawai');
+        $user = DB::table('users')->where('email', $email)->first();
+                
+        // Set session
+        session([
+            'email'     => $user->email,
+            'role'      => $user->role,
+            'nama_user' => $user->nama_lengkap,  // selalu pakai nama_lengkap
+        ]);
+         // Jika role=pegawai, ambil juga jabatan
+        if ($user->role === 'pegawai') {
+            session(['jabatan' => $user->jabatan]);
         }
-
-    return redirect('/dashboard');
-    
+        
+        return redirect('/dashboard');
     }
-    // Jika login gagal, kembalikan ke halaman login dengan pesan error
-    return back()->withErrors([
-    'email' => 'Email tidak ditemukan.',
-    'password' => 'atau kata sandi salah.',
-])->withInput();
+
+        return back()->withErrors([
+        'email'    => 'Email tidak ditemukan.',
+        'password' => 'atau kata sandi salah.',
+    ])->withInput();
 
 }
 
