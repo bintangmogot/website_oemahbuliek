@@ -13,6 +13,11 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
 {
+        // Buat 10 pegawai sampel
+    User::factory()->count(10)->create([
+        'role' => 'pegawai',
+    ]);
+
     User::create([ // Admin
         'email' => 'admin@resto.test',
         'password' => bcrypt('password123'),

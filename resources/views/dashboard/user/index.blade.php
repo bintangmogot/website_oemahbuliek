@@ -3,9 +3,9 @@
 @section('content')
   <x-index-table
     title="Daftar User"
-    createRoute="admin.user.create"
+    createRoute="user.create"
     createLabel="Tambah User"
-    destroyRoute="admin.user.destroy"
+    destroyRoute="user.destroy"
     :columns="[
       ['label' => 'Email', 'field' => 'email'],
       ['label' => 'Role', 'field' => 'role'],
@@ -16,9 +16,9 @@
     :items="$user"
     :showActions="auth()->user()->role === 'admin'"
     :routes="[
-        'show' => 'admin.user.show',
-        'edit' => 'admin.user.edit',
-        'destroy' => 'admin.user.destroy',
+        'show' => 'user.show',
+        'edit' => 'user.edit',
+        'destroy' => 'user.destroy',
     ]"
     routeKey="user"
   />

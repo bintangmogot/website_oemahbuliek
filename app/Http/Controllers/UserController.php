@@ -91,6 +91,7 @@ class UserController extends Controller
     public function showSelf()
 {
         $user = auth()->user();
+
     return view('dashboard.user.profile-user', compact('user'));
 }
     public function destroy(User $user)
@@ -98,7 +99,7 @@ class UserController extends Controller
         
         $nama = $user->nama_lengkap;        
         $user->delete();
-        return redirect()->route('admin.user.index')
+        return redirect()->route('user.index')
                          ->with('success','User ' . $nama . ' berhasil dihapus');
     }
 

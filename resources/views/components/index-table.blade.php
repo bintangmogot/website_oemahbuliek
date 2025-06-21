@@ -17,7 +17,7 @@
 
 <div class="container py-5">
     {{-- Header: Title, Export, Create --}}
-<div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white">
+<div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white" style="min-height: 50vh">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="mb-0">{{ $title ?? 'Daftar Data' }}</h3>
     <div class="d-flex">
@@ -30,19 +30,21 @@
         {{ $exportLabel ?? 'Export' }}
       </a>
       <!-- Create Button -->
-      <a href="{{ $createUrl ?? route('admin.user.create') }}" class="btn btn-primary">
-        {{ $createLabel ?? 'Tambah Baru' }}
-      </a>
+    @if($createRoute)
+    <a href="{{ route($createRoute) }}" class="btn btn-primary">
+      {{ $createLabel }}
+    </a>
+    @endif
         </div>
     </div>
 
     {{-- Card wrapper with border radius and shadow --}}
     <div class="card rounded-2xl border-0 shadow-sm rounded-3">
         {{-- Optional filter section --}}
-        <div class="card-body p-0 table-responsive rounded-3">
+        <div class="card-body p-0 table-responsive rounded-3" style="min-height: 50vh">
             {{-- Optional filter section --}}
             {{-- Table with zebra stripes, borderless --}}
-            <table class="table table-striped table-borderless mb-0 rounded-3">
+            <table class="table table-striped table-borderless mb-0 rounded-3" >
                 {{-- Table header --}}
                 <thead style="background-color:#FFD9D9">
                     <tr>
@@ -62,7 +64,7 @@
                                     $field = $column['field'];
                                     $value = data_get($item, $field);
                                     if ($value instanceof \Carbon\Carbon) {
-                                        $value = $value->format('Y-m-d');
+                                        $value = $value->format('d-m-Y');
                                     }
                                 @endphp
                                 <td class="align-middle">{{ $value }}</td>
@@ -94,6 +96,7 @@
                                                     </form>
                                                 </li>
                                             @endif
+                                            
                                         </ul>
                                     </div>
                                 </td>

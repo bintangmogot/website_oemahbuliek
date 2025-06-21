@@ -24,13 +24,15 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        $users = auth()->user();
+        $user = auth()->user();
         
-        // Cek apakah role user sesuai
-    if ($users->role !== $role) {
-        // Jika role user tidak sesuai
-        return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
-    }
+        // Split roles berdasarkan koma atau pipe
+        $allowedRoles = preg_split('/[,|]/', $role);
+        
+        // Cek apakah role user ada dalam daftar allowed roles
+        if (!in_array($user->role, $allowedRoles)) {
+            return redirect('/dashboard')->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
+        }
 
         return $next($request);
     }

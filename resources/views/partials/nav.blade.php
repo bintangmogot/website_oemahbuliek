@@ -93,7 +93,7 @@
             <span>Manajemen Inventaris</span>
           </a>
 
-          <a href="{{ route('admin.user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
+          <a href="{{ route('user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Manajemen User</span>
           </a>

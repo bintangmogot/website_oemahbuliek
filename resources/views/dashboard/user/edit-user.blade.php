@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
   <x-form-layout title="Edit User">
-    <form action="{{ route('admin.user.update', $user) }}"
+    <form action="{{ route('user.update', $user) }}"
           method="POST"
           enctype="multipart/form-data">
       @include('dashboard.user.form-user')
