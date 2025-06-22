@@ -11,9 +11,10 @@
       ['label' => 'Role', 'field' => 'role'],
       ['label' => 'Nama', 'field' => 'nama_lengkap'],
       ['label' => 'Jabatan', 'field' => 'jabatan'],
+      ['label'=> 'Jenis Gaji', 'field' => 'pengaturanGaji.nama'],
       ['label' => 'No HP', 'field' => 'no_hp'],
     ]"
-    :items="$user"
+    :items="$users"
     :showActions="auth()->user()->role === 'admin'"
     :routes="[
         'show' => 'user.show',

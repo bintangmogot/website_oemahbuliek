@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\PengaturanGaji;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
@@ -21,33 +22,39 @@ class UserController extends Controller
 }
      public function index()
     {
-        $user = User::select('id', 'email','role', 'nama_lengkap', 'jabatan', 'tgl_masuk', 'no_hp')
-                     ->paginate(10);
+        $users = User::with('pengaturanGaji')
+        ->select('id', 'pengaturan_gaji_id', 'email','role', 'nama_lengkap', 'jabatan', 'tgl_masuk', 'no_hp', 'status')
+        ->paginate(10);
 
-        return view('dashboard.user.index', compact('user'));
+        return view('dashboard.user.index', compact('users'));
     }
     public function create()
     {
-        return view('dashboard.user.create-user', ['user' => null]);
+        $settings = PengaturanGaji::where('status',1)->pluck('nama','id');
+         $user = null;
+        return view('dashboard.user.create-user', compact('settings', 'user'));
     }
     public function store(StoreUserRequest $request)
     {
-        $data = $request->validated();
+        $data = $request->validate([
+            'pengaturan_gaji_id'=> 'nullable|exists:pengaturan_gaji,id',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:6',
+            'role'         => 'required|in:admin,pegawai',
+            'nama_lengkap' => 'required|string|max:255',
+            'jabatan'      => 'required|string|max:50',
+            'tgl_masuk'    => 'required|date',
+            'no_hp'        => 'required|string|max:15',
+            'alamat'       => 'nullable|string',
+            'foto_profil'  => 'nullable|image|max:2048',
+        ]);
 
         // Tangani upload file jika ada
         $data['foto_profil'] = $this->handleFotoProfilUpload($request);
 
-        User::create([
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role'     => $data['role'],   // gunakan apa yang dipilih di form
-            'nama_lengkap'  => $data['nama_lengkap'],
-            'jabatan'       => $data['jabatan'],
-            'tgl_masuk'     => $data['tgl_masuk'],
-            'no_hp'         => $data['no_hp'],
-            'alamat'        => $data['alamat'],
-            'foto_profil'   => $data['foto_profil'],
-        ]);
+        $data['password'] = Hash::make($data['password']);
+
+        User::create($data);
 
         return back()->with('success','User ' .$data['nama_lengkap'] . ' berhasil dibuat');
 
@@ -55,22 +62,26 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403, 'Akses ditolak.');       
-        }
-
-        // Ambil user yang bisa dipilih di dropdown
-        $users = User::where('role', 'admin')
-                    ->orWhere('email', $user->email) // bukan $user->id
-                    ->pluck('email','email');
-
-        return view('dashboard.user.edit-user', compact('user', 'users'));
+        $settings = PengaturanGaji::where('status',1)->pluck('nama','id');
+        
+        return view('dashboard.user.edit-user', compact('user', 'settings'));
     }
 
 
     public function update(UpdateUserRequest $request, User $user)
     {
-        $data = $request->validated();
+        $data = $request->validate([
+            'pengaturan_gaji_id'=>'nullable|exists:pengaturan_gaji,id',
+            'password'     => 'nullable|string|min:6',
+            'role'         => 'required|in:admin,pegawai',
+            'nama_lengkap' => 'required|string|max:255',
+            'jabatan'      => 'required|string|max:50',
+            'tgl_masuk'    => 'required|date',
+            'no_hp'        => 'required|string|max:15',
+            'alamat'       => 'nullable|string',
+            'foto_profil'  => 'nullable|image|max:2048',
+        ]);
+        
         if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -94,14 +105,23 @@ class UserController extends Controller
 
     return view('dashboard.user.profile-user', compact('user'));
 }
-    public function destroy(User $user)
-    {
-        
-        $nama = $user->nama_lengkap;        
+public function destroy(User $user)
+{
+    try {
+        $nama = $user->nama_lengkap;
         $user->delete();
         return redirect()->route('user.index')
-                         ->with('success','User ' . $nama . ' berhasil dihapus');
+                         ->with('success', 'User ' . $nama . ' berhasil dihapus');
+    } catch (\Illuminate\Database\QueryException $e) {
+        // Kode SQLSTATE 23000 untuk constraint violation
+        if ($e->getCode() === '23000') {
+            return redirect()->route('user.index')
+                             ->with('error', 'Tidak dapat menghapus user ini karena masih memiliki data terkait.');
+        }
+        throw $e;
     }
+}
+
 
 
     // ========== PRIVATE HELPER ==========

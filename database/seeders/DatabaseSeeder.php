@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\PengaturanGaji;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,6 +15,8 @@ class DatabaseSeeder extends Seeder
             JadwalShiftSeeder::class,
             PegawaiJadwalSeeder::class,
             PresensiSeeder::class,
+            PengaturanGajiSeeder::class,
+        
         ]);
 
     }

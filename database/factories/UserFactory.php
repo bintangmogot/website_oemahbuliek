@@ -13,16 +13,18 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
+            'pengaturan_gaji_id'=>null,
             'email'         => $this->faker->unique()->safeEmail(),
             'password'      => bcrypt('password'), // default
-            'role'          => 'pegawai',
+            'role'          => $this->faker->randomElement(['admin','pegawai']),
             'nama_lengkap'  => $this->faker->name(),
             'jabatan'       => $this->faker->randomElement(['Koki','Pelayan','Kasir','Manajer']),
-            'no_hp'         => $this->faker->numerify('08#########'), // antara 10–12 digit
+            'no_hp'         => $this->faker->unique(true)->regexify('08[0-9]{8,10}'), // 12 digit termasuk 08
             'alamat'        => $this->faker->address(),
-            'tgl_masuk'     => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'tgl_masuk'     => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
             'foto_profil'   => null,
             'remember_token'=> Str::random(10),
+            'status'        => 1,
         ];
     }
 }

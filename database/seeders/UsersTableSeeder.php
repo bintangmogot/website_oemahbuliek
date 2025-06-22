@@ -28,6 +28,7 @@ class UsersTableSeeder extends Seeder
         'alamat'        => 'Jl. Merdeka No.1',
         'tgl_masuk'     => now()->subDays(30), // 30 hari yang lalu
         'foto_profil'   => null, // Atau path ke foto profil jika ada
+        'status'        => 1,
     ]);
     User::create([ // Pegawai
         'email' => 'pegawai@resto.test',
@@ -39,6 +40,7 @@ class UsersTableSeeder extends Seeder
         'alamat'        => 'Jl. Merdeka No.2',
         'tgl_masuk'     => now()->subDays(20), // 20 hari yang lalu
         'foto_profil'   => null,
+        'status'        => 1,
     ]);
     User::create([ // Pegawai
         'email' => 'oke@gmail.com',
@@ -50,6 +52,7 @@ class UsersTableSeeder extends Seeder
         'alamat'        => 'Jl. Merdeka No.3',
         'tgl_masuk'     => now()->subDays(10), // 10 hari yang lalu
         'foto_profil'   => null,
+        'status'        => 1,
     ]);
     User::create([ // Pegawai
         'email' => 'mantap@gmail.com',
@@ -61,17 +64,7 @@ class UsersTableSeeder extends Seeder
         'alamat'        => 'Jl. Merdeka No.4',
         'tgl_masuk'     => now()->subDays(5), // 5 hari yang lalu
         'foto_profil'   => null,
-    ]);
-    User::create([ // Pegawai
-        'email' => 'mantappu@gmail.com',
-        'password' => bcrypt('password123'),
-        'role' => 'pegawai',
-        'nama_lengkap'  => 'Mantap Jaya',
-        'jabatan'       => 'Pelayan',
-        'no_hp'         => '081234567893',
-        'alamat'        => 'Jl. Merdeka No.4',
-        'tgl_masuk'     => now()->subDays(1), // 1 hari yang lalu
-        'foto_profil'   => null,
+        'status'        => 1,
     ]);
     }
 }

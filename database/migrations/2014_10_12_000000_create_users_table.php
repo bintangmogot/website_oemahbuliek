@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->bigIncrements('id');  // Tambahkan kolom ID sebagai primary key
+            $table->id();
+            $table->unsignedBigInteger('pengaturan_gaji_id')->nullable();
+
             $table->string('email', 100)->unique();
             $table->string('password');
             $table->rememberToken();
@@ -20,12 +22,23 @@ return new class extends Migration
 
             $table->string('nama_lengkap');
             $table->string('jabatan', 50);
-            $table->date('tgl_masuk')->nullable();
-            $table->string('no_hp', 15);
+            $table->date('tgl_masuk');
+            $table->string('no_hp', 15)->unique();
             $table->text('alamat')->nullable();
             $table->string('foto_profil')->nullable();
 
+            $table->tinyInteger('status')->default(1)->comment('0=Inactive, 1=Active, 2=Suspended');
+            
             $table->timestamps();
+
+            $table->foreign('pengaturan_gaji_id')
+                ->references('id')->on('pengaturan_gaji')
+                ->onDelete('set null')
+                ->onUpdate('cascade');
+            // Indexes
+            $table->index('role');
+            $table->index('nama_lengkap');
+            $table->index('status');
             
         });
     }

@@ -18,7 +18,7 @@ class PegawaiJadwalSeeder extends Seeder
             'users_id'        => $pegawai->id,
             'jadwal_shift_id' => $jadwal->id,
         ]);
-                // Contoh: buat 20 assignment pegawai ke jadwal
-        PegawaiJadwal::factory()->count(5)->create();
+                // Contoh: buat 3 assignment pegawai ke jadwal
+        PegawaiJadwal::factory()->count(3)->create();
     }
 }

@@ -10,8 +10,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\JadwalShiftController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PegawaiJadwalController;
-use App\Models\JadwalShift;
-
+use App\Http\Controllers\PengaturanGajiController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -59,6 +58,17 @@ Route::middleware('role:admin|pegawai')->name('profile.')->group(function () {
         Route::get('profile', [UserController::class, 'showSelf'])->name('me');
     });
 
+
+// TABEL PENGATURAN GAJI
+Route::middleware('role:admin')->name('pengaturan_gaji.')->group(function(){
+    Route::get('pengaturan-gaji',[PengaturanGajiController::class,'index'])->name('index');
+    Route::get('pengaturan-gaji/create',[PengaturanGajiController::class,'create'])->name('create');
+    Route::post('pengaturan-gaji',[PengaturanGajiController::class,'store'])->name('store');
+    Route::get('pengaturan-gaji/{pengaturan_gaji}/edit',[PengaturanGajiController::class,'edit'])->name('edit');
+    Route::put('pengaturan-gaji/{pengaturan_gaji}',[PengaturanGajiController::class,'update'])->name('update');
+    Route::delete('pengaturan-gaji/{pengaturan_gaji}',[PengaturanGajiController::class,'destroy'])->name('destroy');
+});
+
     // TABEL PRESENSI
 // ————— Khusus presensi pegawai bisa semua kecuali hapus —————
 Route::middleware('role:admin|pegawai')->name('presensi.')->group(function () {
@@ -93,17 +103,6 @@ Route::middleware('role:admin|pegawai')->name('jadwal.')->group(function () {
          Route::get('jadwal-shift/{jadwal_shift}', [JadwalShiftController::class,'show'])->name('show');
      });
 
-// Matrix UI Routes
-Route::get('jadwal-shift/bulk-create-matrix', [JadwalShiftController::class, 'bulkCreateMatrix'])
-     ->name('jadwal-shift.bulk-create-matrix');
-
-Route::post('jadwal-shift/bulk-store-matrix', [JadwalShiftController::class, 'bulkStoreMatrix'])
-     ->name('jadwal-shift.bulk-store-matrix');
-
-// Optional: AJAX route untuk load data bulan lain
-Route::get('jadwal-shift/matrix-data', [JadwalShiftController::class, 'getJadwalMatrix'])
-     ->name('jadwal-shift.matrix-data');
-
 
 // ————— TABEL SHIFTS —————
 
@@ -124,23 +123,6 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
 
 
 // ————— TABEL PEGAWAI JADWAL —————
-
-// Admin‑only (create, store, edit, update, destroy)
-// Route::middleware('role:admin')->name('pegawai-jadwal.')->group(function () {
-//     Route::get('pegawai-jadwal/create',                      [PegawaiJadwalController::class,'create'])->name('create');
-//     Route::post('pegawai-jadwal',                            [PegawaiJadwalController::class,'store'])->name('store');
-//     Route::get('pegawai-jadwal/{pegawai_jadwal}/edit',       [PegawaiJadwalController::class,'edit'])->name('edit');
-//     Route::put('pegawai-jadwal/{pegawai_jadwal}',            [PegawaiJadwalController::class,'update'])->name('update');
-//     Route::delete('pegawai-jadwal/{pegawai_jadwal}',         [PegawaiJadwalController::class,'destroy'])->name('destroy');
-// });
-
-// // View‑only (index & show)
-// Route::middleware('role:admin|pegawai')->name('pegawai-jadwal.')->group(function () {
-//     Route::get('pegawai-jadwal',                             [PegawaiJadwalController::class,'index'])->name('index');
-//     Route::get('pegawai-jadwal/{pegawai_jadwal}',            [PegawaiJadwalController::class,'show'])->name('show');
-// });
-
-
     
     // Admin only
     Route::middleware('role:admin')->group(function () {

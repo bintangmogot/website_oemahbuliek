@@ -13,6 +13,7 @@
             <p class="border-bottom pb-2"><strong>Role:</strong> {{ ucfirst($user->role) }}</p>
             <p class="border-bottom pb-2"><strong>Nama Lengkap:</strong> {{ $user->nama_lengkap }}</p>
             <p class="border-bottom pb-2"><strong>Jabatan:</strong> {{ $user->jabatan }}</p>
+            <p class="border-bottom pb-2"><strong>Pengaturan Gaji : </strong>  {{ optional($user->pengaturanGaji)->nama ?? '-' }}</p>
             <p class="border-bottom pb-2"><strong>Tanggal Masuk:</strong> {{ $user->tgl_masuk }}</p>
             <p class="border-bottom pb-2"><strong>No. HP:</strong> {{ $user->no_hp }}</p>
             <p class="border-bottom pb-2"><strong>Alamat:</strong> {{ $user->alamat }}</p>

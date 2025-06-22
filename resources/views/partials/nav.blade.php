@@ -45,8 +45,8 @@
       {{-- Profile Avatar --}}
       <div class="profile-avatar">
         @if(auth()->user()->foto_profil)
-          <img src="{{ asset('storage/' . auth()->user()->foto_profil) }}"
-              alt="Profile" class="avatar-img">
+          <x-avatar src="{{ asset('storage/' . auth()->user()->foto_profil) }}" size="50"
+              alt="Profile" class="avatar-img"/>
         @else
           <div class="avatar-placeholder">
             <i class="fas fa-user"></i>
@@ -83,38 +83,60 @@
             @endif
           </a>
           
-          <a href="#" class="menu-item {{ request()->is('dashboard/dashboard*') ? 'active' : '' }}">
-            <i class="fas fa-users"></i>
+          <a href="{{ route('presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
             <span>Presensi Pegawai</span>
-          </a>
-          
-          <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">
-            <i class="fas fa-box"></i>
-            <span>Manajemen Inventaris</span>
           </a>
 
           <a href="{{ route('user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Manajemen User</span>
           </a>
-          
-          <a href="#" class="menu-item {{ request()->is('dashboard/kasir*') ? 'active' : '' }}">
-            <i class="fas fa-cash-register"></i>
-            <span>Kasir</span>
+
+          <a href="{{ route('shift.index') }}" class="menu-item {{ request()->is('dashboard/shift*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
+            <span>Shift</span>
           </a>
 
+          <a href="{{ route('jadwal.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
+            <span>Jadwal Pegawai</span>
+          </a>
+          
+          <a href="{{ route('pengaturan_gaji.index') }}" class="menu-item {{ request()->is('dashboard/pengaturan-gaji*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
+            <span>Pengaturan Gaji</span>
+          </a>
+
+          <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">
+            <i class="fas fa-box"></i>
+            <span>Manajemen Inventaris</span>
+          </a>
         {{-- Menu untuk Pegawai --}}
         @else
           <a href="/dashboard" class="menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
           </a>
+
+          <a href="#" class="menu-item {{ request()->is('dashboard/pesan*') ? 'active' : '' }}">
+            <i class="fas fa-envelope"></i>
+            <span>Pesan</span>
+            @if(isset($unreadMessages) && $unreadMessages > 0)
+              <span class="badge">{{ $unreadMessages }}</span>
+            @endif
+          </a>
           
-          <a href="#" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
+          <a href="{{ route('presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
             <i class="fas fa-clock"></i>
             <span>Presensi</span>
           </a>
-          
+
+          <a href="{{ route('jadwal.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
+            <span>Jadwal Pegawai</span>
+          </a>
+
           <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">
             <i class="fas fa-box"></i>
             <span>Inventaris</span>
