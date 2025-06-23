@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Buat Presensi')
 
 @section('content')
   <x-form-layout title="Tambah Presensi" :backRoute="route('presensi.index')">

@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Buat Jadawl Shift')
 @section('content')
 @if(auth()->user()->role === 'admin')
 <div class="container-fluid mt-5">

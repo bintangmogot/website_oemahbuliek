@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Edit Shift')
 @section('content')
   <x-form-layout 
     title="⏰ Edit Shift" 

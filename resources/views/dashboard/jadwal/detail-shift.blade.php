@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Detail Shift')
 
 @section('content')
 <div class="container-fluid mt-5">

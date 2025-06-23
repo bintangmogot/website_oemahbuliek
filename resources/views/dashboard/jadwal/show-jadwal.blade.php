@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Detail Jadwal')
 @section('content')
 
 {{-- Check authorization: admin can see all, user can only see their own --}}

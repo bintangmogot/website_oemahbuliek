@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Daftar Pengaturan Gaji')
 @section('content')
   <x-index-table
     title="Pengaturan Gaji"

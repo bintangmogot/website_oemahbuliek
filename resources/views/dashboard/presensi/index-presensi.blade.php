@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Daftar Presensi')
 
 @section('content')
   <x-index-table

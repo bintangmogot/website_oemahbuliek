@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Tambah User')
 
 @section('content')
   <x-form-layout

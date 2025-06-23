@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Pilih Pengelompokan Shift')
 
 @section('content')
 <div class="container-fluid mt-5">

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('title', 'Detail Presensi')
 @section('content')
 <div class="container py-3">
     <h1 class="fw-bold text-center">Detail Presensi</h1>

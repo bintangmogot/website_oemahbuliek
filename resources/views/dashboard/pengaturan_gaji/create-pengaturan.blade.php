@@ -1,4 +1,6 @@
 @extends('layouts.app')
+@section('title', 'Buat Pengaturan Gaji')
+
 @section('content')
   <x-form-layout title="💰 Tambah Pengaturan Gaji" :backRoute="route('pengaturan_gaji.index')">
     <form action="{{ route('pengaturan_gaji.store') }}" method="POST">

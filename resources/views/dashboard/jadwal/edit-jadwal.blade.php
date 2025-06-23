@@ -1,4 +1,6 @@
 @extends('layouts.app')
+@section('title', 'Edit Jadwal Pegawai')
+
 @section('content')
 
 @if(auth()->user()->role === 'admin')

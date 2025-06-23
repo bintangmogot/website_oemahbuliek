@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Edit User')
 
 @section('content')
   <x-form-layout

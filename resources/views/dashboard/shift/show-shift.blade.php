@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title', 'Shift')
 
 @section('content')
 <div class="container py-3">
