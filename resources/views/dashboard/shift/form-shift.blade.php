@@ -22,10 +22,10 @@
 <div class="mb-3">
   <label for="jam_mulai" class="form-label">Jam Mulai</label>
   <input type="time"
-         name="jam_mulai"
-         id="jam_mulai"
-         class="form-control"
-         value="{{ old('jam_mulai', $shift->jam_mulai ?? '') }}">
+        name="jam_mulai"
+        id="jam_mulai"
+        class="form-control"
+      value="{{ old('jam_mulai', isset($shift->jam_mulai) ? \Carbon\Carbon::parse($shift->jam_mulai)->format('H:i') : '') }}">
   @error('jam_mulai') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
@@ -36,7 +36,8 @@
          name="jam_selesai"
          id="jam_selesai"
          class="form-control"
-         value="{{ old('jam_selesai', $shift->jam_selesai ?? '') }}">
+       value="{{ old('jam_selesai', isset($shift->jam_selesai) ? \Carbon\Carbon::parse($shift->jam_selesai)->format('H:i') : '') }}">
+
   @error('jam_selesai') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
@@ -64,6 +65,6 @@
   @error('batas_lembur_min') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
-<button class="btn btn-{{ $isEdit ? 'primary' : 'success' }}">
+{{-- <button class="btn btn-{{ $isEdit ? 'primary' : 'success' }}">
   {{ $isEdit ? 'Simpan Perubahan' : 'Tambah Shift' }}
-</button>
+</button> --}}

@@ -11,6 +11,8 @@ class Shift extends Model
 
     protected $table = 'shift';
     protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 /**
      * The attributes that are mass assignable.
      *
@@ -22,11 +24,38 @@ class Shift extends Model
         'jam_selesai',
         'toleransi_terlambat',
         'batas_lembur_min',
+        'status'
+    ];
+
+    protected $casts = [
+        'toleransi_terlambat' => 'integer',
+        'batas_lembur_min' => 'integer',
+        'status' => 'integer',
     ];
 
     // relasi ke jadwal
     public function jadwals()
     {
         return $this->hasMany(JadwalShift::class, 'shift_id');
+    }
+
+  // Relasi many-to-many ke User melalui JadwalShift
+    // Shift bisa digunakan oleh banyak user di berbagai tanggal
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'jadwal_shift', 'shift_id', 'users_id')
+                    ->withPivot('tanggal', 'status')
+                    ->withTimestamps();
+    }
+
+// Scope untuk shift aktif
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 1;
     }
 }

@@ -1,11 +1,14 @@
 @extends('layouts.app')
+
 @section('content')
-  <x-form-layout title="Edit User">
-    <form action="{{ route('user.update', $user) }}"
-          method="POST"
-          enctype="multipart/form-data">
-      @include('dashboard.user.form-user')
-      <button class="btn btn-primary">Simpan Perubahan</button>
-    </form>
+  <x-form-layout
+    title="👤 Edit User"
+    :backRoute="route('user.index')"          {{-- tombol Kembali --}}
+    :submitRoute="route('user.update', $user->id)"        {{-- action form --}}
+    submitMethod="PUT"                       {{-- method form --}}
+    formId="user-form"                        {{-- ID form unik --}}
+    submitLabel="Simpan Perubahan"                 {{-- label tombol Simpan --}}
+  >
+    @include('dashboard.user.form-user', ['settings' => $settings, 'user' => $user])
   </x-form-layout>
 @endsection

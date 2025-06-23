@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-  <x-form-layout title="Edit Shift">
-    <form action="{{ route('shift.update', $shift) }}" method="POST">
-      @csrf
-      @method('PUT')
-      @include('dashboard.shift.form-shift', ['shift' => $shift])
-    </form>
+  <x-form-layout 
+    title="⏰ Edit Shift" 
+    :backRoute="route('shift.index')"
+    :submitRoute="route('shift.update', $shift->id)"        
+    submitMethod="PUT"                       
+    formId="shift-form"                        
+    submitLabel="Simpan Perubahan"
+    >                 
+    @include('dashboard.shift.form-shift', ['shift' => $shift])
   </x-form-layout>
 @endsection

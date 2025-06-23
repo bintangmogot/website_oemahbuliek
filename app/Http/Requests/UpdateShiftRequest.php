@@ -17,8 +17,8 @@ class UpdateShiftRequest extends FormRequest
 
         return [
             'nama_shift'            => ['required','string','max:50',"unique:shift,nama_shift,{$id}"],
-            'jam_mulai'             => ['required','date_format:H:i:s'],
-            'jam_selesai'           => ['required','date_format:H:i:s','after:jam_mulai'],
+            'jam_mulai'             => ['required','date_format:H:i'],
+            'jam_selesai'           => ['required','date_format:H:i','after:jam_mulai'],
             'toleransi_terlambat'   => ['required','integer','min:0'],
             'batas_lembur_min'      => ['required','integer','min:0'],
         ];

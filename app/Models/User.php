@@ -29,7 +29,8 @@ class User extends Authenticatable
     public $incrementing = true;
     protected $keyType = 'int';  
     protected $fillable = [
-        'pengaturan_gaji_id','email','password','role',
+        'pengaturan_gaji_id',
+        'email','password','role',
         'nama_lengkap','jabatan','tgl_masuk','no_hp','alamat','foto_profil', 'status'
     ];
     
@@ -78,6 +79,23 @@ public static function getIsAdminAttribute()
     {
         return $this->belongsTo(PengaturanGaji::class, 'pengaturan_gaji_id', 'id');
     }
+
+
+    // Relasi ke semua JadwalShift yang di-assign ke user ini
+    public function jadwalShifts()
+    {
+        return $this->hasMany(JadwalShift::class, 'users_id', 'id');
+    }
+
+    // Relasi many-to-many ke Shift melalui JadwalShift
+    // User bisa memiliki banyak shift di berbagai tanggal
+    public function shifts()
+    {
+        return $this->belongsToMany(Shift::class, 'jadwal_shift', 'users_id', 'shift_id')
+                    ->withPivot('tanggal', 'status')
+                    ->withTimestamps();
+    }
+
         public function presensi()
     {
         return $this->hasMany(Presensi::class, 'users_id', 'id');

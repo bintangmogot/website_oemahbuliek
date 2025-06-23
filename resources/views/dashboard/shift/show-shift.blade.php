@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container py-3">
-    <h1 class="fw-bold text-center">Detail Shift</h1>
+    <h1 class="fw-bold text-center">⏰ Detail Shift</h1>
     <div class="border-0 shadow bg-white rounded-3 p-4" style="max-width: 600px; margin: auto;">
         <p><strong>Nama Shift:</strong> {{ $shift->nama_shift }}</p>
         <p><strong>Jam Mulai:</strong> {{ $shift->jam_mulai }}</p>

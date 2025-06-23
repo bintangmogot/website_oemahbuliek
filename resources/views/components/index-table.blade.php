@@ -17,26 +17,28 @@
 
 <div class="container py-5">
     {{-- Header: Title, Export, Create --}}
-<div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white" style="min-height: 50vh">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0">{{ $title ?? 'Daftar Data' }}</h3>
-    <div class="d-flex">
-      <!-- Filter Button -->
-      <button class="btn btn-outline-secondary me-2">
-        <i class="bi bi-funnel"></i>
-      </button>
-      <!-- Export Button -->
-      <a href="{{ $exportUrl ?? '#' }}" class="btn btn-success me-2">
-        {{ $exportLabel ?? 'Export' }}
-      </a>
-      <!-- Create Button -->
-    @if($createRoute)
-    <a href="{{ route($createRoute) }}" class="btn btn-primary">
-      {{ $createLabel }}
-    </a>
-    @endif
+    <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white" style="min-height: 50vh">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-3 card-header-theme">
+            <h3 class="fw-bold mb-0">{{ $title ?? 'Daftar Data' }}</h3>
+                <div class="d-flex">
+                <!-- Filter Button -->
+                    <button class="btn btn-theme primary me-2 py-2 px-3">
+                        <i class="bi bi-funnel" style="font-size: 1.2rem" ></i>
+                    </button>
+                        @if(Route::currentRouteName() === 'shift.index')
+                        <a href={{ route('jadwal-shift.pilih-shift') }} class="btn btn-success me-2">
+                        <i class="fas fa-clock"></i> Pilih Shift Detail
+                        </a>
+                        @endif
+                <!-- Create Button -->
+                    @if($createRoute)
+                    <a href="{{ route($createRoute) }}" class="btn btn-yellow">
+                        <i class="fas fa-plus"></i>
+                        {{ $createLabel }}
+                    </a>
+                    @endif
+                </div>
         </div>
-    </div>
 
     {{-- Card wrapper with border radius and shadow --}}
     <div class="card rounded-2xl border-0 shadow-sm rounded-3">

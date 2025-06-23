@@ -33,7 +33,7 @@ public function __construct()
         return view('dashboard.presensi.create-presensi', [
             'presensi' => new Presensi(),
             'users'    => \App\Models\User::pluck('nama_lengkap','id'),
-            'jadwals'  => \App\Models\JadwalShift::pluck('mulai_berlaku','id'),
+            'jadwals'  => \App\Models\JadwalShift::pluck('tanggal','id'),
         ]);
     }
 

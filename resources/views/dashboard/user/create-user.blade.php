@@ -1,13 +1,14 @@
 @extends('layouts.app')
-@section('content')
-  <x-form-layout title="Tambah User">
-    @php $user = null; @endphp
 
-    <form action="{{ route('user.store') }}"
-          method="POST"
-          enctype="multipart/form-data">
-      @include('dashboard.user.form-user', ['settings' => $settings])      
-      <button class="btn btn-success">Simpan</button>
-    </form>
+@section('content')
+  <x-form-layout
+    title="👤 Tambah User"
+    :backRoute="route('user.index')"          {{-- tombol Kembali --}}
+    :submitRoute="route('user.store')"        {{-- action form --}}
+    submitMethod="POST"                       {{-- method form --}}
+    formId="user-form"                        {{-- ID form unik --}}
+    submitLabel="Simpan User"                 {{-- label tombol Simpan --}}
+  >
+    @include('dashboard.user.form-user', ['settings' => $settings])
   </x-form-layout>
 @endsection

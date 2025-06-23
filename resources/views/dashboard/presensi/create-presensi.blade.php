@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-  <x-form-layout title="Tambah Presensi">
+  <x-form-layout title="Tambah Presensi" :backRoute="route('presensi.index')">
 
     <form action="{{ route('presensi.store') }}"
           method="POST">

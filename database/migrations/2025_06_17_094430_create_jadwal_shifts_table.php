@@ -10,17 +10,28 @@ class CreateJadwalShiftsTable extends Migration
     {
         Schema::create('jadwal_shift', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_periode', 100);
             $table->foreignId('shift_id')
                   ->constrained('shift')
                   ->onDelete('restrict')
                   ->onUpdate('cascade');
-            $table->date('mulai_berlaku')->nullable();
-            $table->date('berakhir_berlaku')->nullable();
-            $table->set('hari_kerja', ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
+
+            // Add foreign key for user
+            $table->foreignId('users_id')
+                ->constrained('users')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
+
+            $table->date('tanggal');
+            $table->tinyInteger('status')->default(1)->comment('0=Cancelled, 1=Active, 2=Completed');
             $table->timestamps();
 
-            $table->index('shift_id', 'idx_jadwal_shift');
+            // 1 pegawai tidak bisa memiliki shift yang sama di tanggal yang sama
+            $table->unique(['users_id', 'shift_id', 'tanggal'], 'unique_user_shift_date');
+
+            // Indexes
+            $table->index('tanggal');
+            $table->index('status');
+            $table->index(['users_id', 'tanggal']);
         });
     }
 

@@ -11,38 +11,67 @@ class JadwalShift extends Model
 
     protected $table = 'jadwal_shift';
     protected $primaryKey = 'id';
-protected $fillable = [
-  'shift_id',
-  'nama_periode',
-  'mulai_berlaku',
-  'berakhir_berlaku',
-  'hari_kerja',
-];
+    public $incrementing = true;
+    protected $keyType = 'int';
 
-    protected $casts = [
-      'mulai_berlaku'   => 'date',
-      'berakhir_berlaku'=> 'date',
-      'hari_kerja'      => 'string', // simpan di DB sebagai SET string
+    protected $fillable = [
+        'shift_id',
+        'users_id',
+        'tanggal',
+        'status'
     ];
 
-    // Accessor untuk bentuk array/hari readable
-    public function getHariKerjaListAttribute()
-    {
-        $map = [
-          'Mon'=>'Senin','Tue'=>'Selasa','Wed'=>'Rabu',
-          'Thu'=>'Kamis','Fri'=>'Jumat','Sat'=>'Sabtu','Sun'=>'Minggu',
-        ];
-        return collect(explode(',', $this->hari_kerja))
-               ->map(fn($d) => $map[$d] ?? $d)
-               ->implode(', ');
-    }
+    protected $casts = [
+        'tanggal' => 'date',
+        'shift_id' => 'integer',
+        'users_id' => 'integer',
+        'status' => 'integer',
+    ];
+
+    // Relasi ke Shift
     public function shift()
     {
-        return $this->belongsTo(Shift::class, 'shift_id');
+        return $this->belongsTo(Shift::class, 'shift_id');    
     }
 
-    public function pegawaiJadwals()
+    // Relasi ke User
+    public function user()
     {
-        return $this->hasMany(PegawaiJadwal::class, 'jadwal_shift_id');
+        return $this->belongsTo(User::class, 'users_id');
+    }
+
+
+
+    // Scope untuk jadwal aktif
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    // Scope untuk tanggal tertentu
+    public function scopeByDate($query, $date)
+    {
+        return $query->whereDate('tanggal', $date);
+    }
+
+    // Scope untuk user tertentu
+    public function scopeByUser($query, $userId)
+    {
+        return $query->where('users_id', $userId);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 1;
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return match($this->status) {
+            0 => 'Dibatalkan',
+            1 => 'Aktif',
+            2 => 'Selesai',
+            default => 'Tidak Diketahui'
+        };
     }
 }

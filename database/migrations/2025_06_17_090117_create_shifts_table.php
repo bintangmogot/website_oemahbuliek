@@ -15,6 +15,7 @@ class CreateShiftsTable extends Migration
             $table->time('jam_selesai');
             $table->unsignedInteger('toleransi_terlambat'); // dalam menit
             $table->unsignedInteger('batas_lembur_min');    // dalam menit
+            $table->tinyInteger('status')->default(1)->comment('0=Inactive, 1=Active');
             $table->timestamps();
         });
     }

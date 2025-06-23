@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
   <x-index-table
     title="Daftar Shift"
     createRoute="shift.create"
@@ -8,8 +9,8 @@
     destroyRoute="admin.shift.destroy"
     :columns="[
       ['label'=>'Nama Shift',      'field'=>'nama_shift'],
-      ['label'=>'Mulai',           'field'=>'jam_mulai'],
-      ['label'=>'Selesai',         'field'=>'jam_selesai'],
+      ['label'=>'Mulai',           'field'=>'jam_mulai', 'format'=>'H:i'],
+      ['label'=>'Selesai',         'field'=>'jam_selesai', 'format'=>'H:i'],
       ['label'=>'Toleransi (mnt)', 'field'=>'toleransi_terlambat'],
       ['label'=>'Batas Lembur (mnt)','field'=>'batas_lembur_min'],
     ]"

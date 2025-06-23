@@ -35,11 +35,14 @@ return new class extends Migration
                 ->references('id')->on('pengaturan_gaji')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
+
+
             // Indexes
             $table->index('role');
             $table->index('nama_lengkap');
             $table->index('status');
-            
+
+
         });
     }
 

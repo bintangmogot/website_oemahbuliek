@@ -11,8 +11,7 @@ class ShiftController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth','role:admin'])->except(['index','show']);
-        $this->middleware('auth')->only(['index','show']);
+        $this->middleware(['auth','role:admin']);
     }
 
     public function index()

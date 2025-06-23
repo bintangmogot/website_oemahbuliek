@@ -88,17 +88,19 @@ Route::middleware('role:admin|pegawai')->name('presensi.')->group(function () {
 // ————— TABEL JADWAL SHIFTS —————
 
 // Admin‑only (create, store, edit, update, destroy)
-Route::middleware('role:admin')->name('jadwal.')->group(function () {
+Route::middleware('role:admin')->name('jadwal-shift.')->group(function () {
         Route::get('jadwal-shift/create',              [JadwalShiftController::class,'create'])->name('create');
         Route::post('jadwal-shift',                    [JadwalShiftController::class,'store'])->name('store');
         Route::get('jadwal-shift/{jadwal_shift}/edit', [JadwalShiftController::class,'edit'])->name('edit');
         Route::put('jadwal-shift/{jadwal_shift}',      [JadwalShiftController::class,'update'])->name('update');
+        Route::get('jadwal-shift/pilih-shift',         [JadwalShiftController::class,'pilihShift'])->name('pilih-shift');
+        Route::get('/jadwal-shift/detail/{shift_id}/{tanggal}',[JadwalShiftController::class, 'detailShift'])->name('detail');
         Route::delete('jadwal-shift/{jadwal_shift}',   [JadwalShiftController::class, 'destroy'])->name('destroy');
         
      });
      
 // View‑only (index & show)
-Route::middleware('role:admin|pegawai')->name('jadwal.')->group(function () {
+Route::middleware('role:admin|pegawai')->name('jadwal-shift.')->group(function () {
          Route::get('jadwal-shift',                [JadwalShiftController::class,'index'])->name('index');
          Route::get('jadwal-shift/{jadwal_shift}', [JadwalShiftController::class,'show'])->name('show');
      });
@@ -121,23 +123,7 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
     Route::get('shift/{shift}',             [ShiftController::class,'show'])->name('show');
 });
 
-
-// ————— TABEL PEGAWAI JADWAL —————
-    
-    // Admin only
-    Route::middleware('role:admin')->group(function () {
-        Route::get('pegawai-jadwal/create', [PegawaiJadwalController::class, 'create'])->name('pegawai-jadwal.create');
-        Route::post('pegawai-jadwal', [PegawaiJadwalController::class, 'store'])->name('pegawai-jadwal.store');
-        Route::get('pegawai-jadwal/{users_id}/{jadwal_shift_id}/edit', [PegawaiJadwalController::class, 'edit'])->name('pegawai-jadwal.edit');
-        Route::put('pegawai-jadwal/{users_id}/{jadwal_shift_id}', [PegawaiJadwalController::class, 'update'])->name('pegawai-jadwal.update');
-        Route::delete('pegawai-jadwal/{users_id}/{jadwal_shift_id}', [PegawaiJadwalController::class, 'destroy'])->name('pegawai-jadwal.destroy');
-    });
-
-    // View only
-    Route::middleware('role:admin|pegawai')->group(function () {
-        Route::get('pegawai-jadwal', [PegawaiJadwalController::class, 'index'])->name('pegawai-jadwal.index');
-        Route::get('pegawai-jadwal/{users_id}/{jadwal_shift_id}', [PegawaiJadwalController::class, 'show'])->name('pegawai-jadwal.show');
-    });
     
 
 });
+

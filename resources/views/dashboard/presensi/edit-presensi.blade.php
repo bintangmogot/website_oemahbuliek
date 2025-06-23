@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-  <x-form-layout title="Edit Presensi">
+  <x-form-layout title="Edit Presensi" :backRoute="route('presensi.index')">
     <form action="{{ route('admin.presensi.update', $presensi) }}"
           method="POST">
       @csrf

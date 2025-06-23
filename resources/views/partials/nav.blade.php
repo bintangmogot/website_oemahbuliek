@@ -2,6 +2,11 @@
 <link rel="stylesheet" href="/css/nav.css">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+@php
+  use Illuminate\Support\Facades\Storage;
+  $user = auth()->user();
+@endphp
+
 
 
 {{-- Navbar untuk Guest --}}
@@ -44,9 +49,11 @@
     <div class="profile-section">
       {{-- Profile Avatar --}}
       <div class="profile-avatar">
-        @if(auth()->user()->foto_profil)
-          <x-avatar src="{{ asset('storage/' . auth()->user()->foto_profil) }}" size="50"
-              alt="Profile" class="avatar-img"/>
+        @if($user->foto_profil && Storage::disk('public')->exists($user->foto_profil))
+        <img
+          src="{{ asset('storage/' . $user->foto_profil) }}"
+          size="50" alt="Profile" class="avatar-img" />
+
         @else
           <div class="avatar-placeholder">
             <i class="fas fa-user"></i>
@@ -98,7 +105,7 @@
             <span>Shift</span>
           </a>
 
-          <a href="{{ route('jadwal.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
+          <a href="{{ route('jadwal-shift.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Jadwal Pegawai</span>
           </a>
@@ -132,7 +139,7 @@
             <span>Presensi</span>
           </a>
 
-          <a href="{{ route('jadwal.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
+          <a href="{{ route('jadwal-shift.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Jadwal Pegawai</span>
           </a>
@@ -150,7 +157,7 @@
         {{-- Logout --}}
         <form method="POST" action="{{ route('logout') }}" class="logout-form">
           @csrf
-          <button type="submit" class="menu-item logout-btn">
+          <button type="submit" class="menu-item logout-btn" style="background-color: var(--secondary-color);">
             <i class="fas fa-sign-out-alt"></i>
             <span>Log Out</span>
           </button>
