@@ -55,7 +55,9 @@
                                     <th>Tanggal</th>
                                     <th>Jam Kerja</th>
                                     <th>Status</th>
+                                    @if(auth()->user()->role === 'admin')
                                     <th>Aksi</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -123,40 +125,40 @@
                                                 @break
                                         @endswitch
                                     </td>
+                                            @if(auth()->user()->role === 'admin')
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            @if(auth()->user()->role === 'pegawai')
-                                                {{-- Tombol untuk pegawai ke halaman presensi --}}
+
+                                                {{-- Tombol untuk pegawai ke halaman presensi
                                                 @if($isJadwalHariIni && $jadwal->status == 1)
                                                     {{-- Tombol aktif jika hari ini adalah hari-H dan jadwal aktif --}}
-                                                    <a href="{{ route('presensi.create', ['jadwal_id' => $jadwal->id]) }}" 
+                                                    {{-- <a href="{{ route('presensi.create', ['jadwal_id' => $jadwal->id]) }}" 
                                                        class="btn btn-outline-primary" 
                                                        title="Presensi">
                                                         <i class="fas fa-clock"></i> Presensi
-                                                    </a>
-                                                @elseif($isJadwalLewat)
+                                                    </a> --}}
+                                                {{-- @elseif($isJadwalLewat) --}}
                                                     {{-- Tombol disabled jika jadwal sudah lewat --}}
-                                                    <button class="btn btn-outline-secondary" 
+                                                    {{-- <button class="btn btn-outline-secondary" 
                                                             disabled 
                                                             title="Jadwal sudah lewat">
                                                         <i class="fas fa-clock"></i> Sudah Lewat
                                                     </button>
                                                 @elseif($jadwal->status != 1)
                                                     {{-- Tombol disabled jika jadwal tidak aktif --}}
-                                                    <button class="btn btn-outline-secondary" 
+                                                    {{-- <button class="btn btn-outline-secondary" 
                                                             disabled 
                                                             title="Jadwal tidak aktif">
                                                         <i class="fas fa-ban"></i> Tidak Aktif
                                                     </button>
-                                                @else
+                                                @else --}}
                                                     {{-- Tombol disabled jika belum hari-H --}}
-                                                    <button class="btn btn-outline-secondary" 
+                                                    {{-- <button class="btn btn-outline-secondary" 
                                                             disabled 
                                                             title="Belum waktunya presensi">
                                                         <i class="fas fa-clock"></i> Belum Waktunya
-                                                    </button>
-                                                @endif
-                                            @else
+                                                    </button> --}} 
+                                                {{-- @endif --}}
                                                 {{-- Tombol untuk admin --}}
                                                 <a href="{{ route('jadwal-shift.show', $jadwal->id) }}" 
                                                    class="btn btn-outline-info btn-sm" 
@@ -180,9 +182,9 @@
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                            @endif
                                         </div>
                                     </td>
+                                    @endif
                                 </tr>
                                 @empty
                                 <tr>

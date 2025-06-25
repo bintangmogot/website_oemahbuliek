@@ -7,6 +7,18 @@
 <div class="container-fluid mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            {{-- Validation errors --}}
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Terjadi kesalahan:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
             <div class="card-body px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white">
                 <div class="card-theme py-2 mb-3">
                     <h3 class="text-center fw-bold">🗓️ Edit Jadwal Shift</h3>
@@ -38,12 +50,12 @@
                         {{-- Ganti Pegawai --}}
                         <div class="mb-3">
                             <label for="users_id" class="form-label">Ganti Pegawai</label>
-                            <select name="users_id" id="users_id" class="form-control">
+                            <select name="users_id" id="users_id" class="form-select">
                                 <option value="{{ $jadwalShift->users_id }}">{{ $jadwalShift->user->nama_lengkap }} (Tidak berubah)</option>
                                 @foreach($users as $user)
                                     @if($user->id != $jadwalShift->users_id)
                                         <option value="{{ $user->id }}" {{ old('users_id') == $user->id ? 'selected' : '' }}>
-                                            {{ $user->nama_lengkap }} - {{ $user->jabatan }}
+                                            {{ $user->nama_lengkap }}
                                         </option>
                                     @endif
                                 @endforeach

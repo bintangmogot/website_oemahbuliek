@@ -9,7 +9,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\JadwalShiftController;
 use App\Http\Controllers\ShiftController;
-use App\Http\Controllers\PegawaiJadwalController;
 use App\Http\Controllers\PengaturanGajiController;
 /*
 |--------------------------------------------------------------------------
@@ -71,19 +70,26 @@ Route::middleware('role:admin')->name('pengaturan_gaji.')->group(function(){
 
     // TABEL PRESENSI
 // ————— Khusus presensi pegawai bisa semua kecuali hapus —————
-Route::middleware('role:admin|pegawai')->name('presensi.')->group(function () {
-        Route::get('presensi',                     [PresensiController::class,'index'])->name('index');
-        Route::get('presensi/create',              [PresensiController::class,'create'])->name('create');
-        Route::post('presensi',                    [PresensiController::class,'store'])->name('store');
-        Route::get('presensi/{presensi}',              [PresensiController::class,'show'])->name('show');
-        Route::get('presensi/{presensi}/edit',         [PresensiController::class,'edit'])->name('edit');
-        Route::put('presensi/{presensi}',              [PresensiController::class,'update'])->name('update');
-     });
-// ————— ADMIN‐ONLY (create/store/edit/update/destroy) —————
-    Route::middleware('role:admin')->name('presensi')->group(function(){
-        Route::delete('presensi/{presensi}',           [PresensiController::class,'destroy'])->name('destroy');
-    });
 
+// Routes untuk Admin
+Route::middleware('role:admin')->group(function () {
+    Route::get('/admin/presensi', [PresensiController::class, 'adminIndex'])->name('admin.presensi.index');
+    Route::post('/admin/presensi/{presensi}/approve', [PresensiController::class, 'approve'])->name('admin.presensi.approve');
+    Route::post('/admin/presensi/{presensi}/reject', [PresensiController::class, 'reject'])->name('admin.presensi.reject');
+});
+
+// Routes untuk Pegawai
+Route::middleware('role:pegawai')->group(function () {
+    Route::get('/pegawai/presensi', [PresensiController::class, 'pegawaiIndex'])->name('pegawai.presensi.index');
+    Route::get('/pegawai/presensi/jadwal/{jadwalShift}', [PresensiController::class, 'show'])->name('pegawai.presensi.show');
+    Route::post('/pegawai/presensi/checkin', [PresensiController::class, 'checkIn'])->name('pegawai.presensi.checkin');
+    Route::post('/pegawai/presensi/checkout', [PresensiController::class, 'checkOut'])->name('pegawai.presensi.checkout');
+});
+
+// Routes untuk kedua role
+Route::middleware('auth')->group(function () {
+    Route::get('/presensi/{presensi}/detail', [PresensiController::class, 'detail'])->name('presensi.detail');
+});
 
 // ————— TABEL JADWAL SHIFTS —————
 

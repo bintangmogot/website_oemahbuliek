@@ -90,7 +90,7 @@
             @endif
           </a>
           
-          <a href="{{ route('presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}" >
+          <a href="{{ route('admin.presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Presensi Pegawai</span>
           </a>
@@ -134,7 +134,7 @@
             @endif
           </a>
           
-          <a href="{{ route('presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
+          <a href="{{ route('pegawai.presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
             <i class="fas fa-clock"></i>
             <span>Presensi</span>
           </a>

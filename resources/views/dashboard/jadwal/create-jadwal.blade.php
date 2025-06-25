@@ -1,10 +1,24 @@
 @extends('layouts.app')
-@section('title', 'Buat Jadawl Shift')
+@section('title', 'Buat Jadwal Shift')
 @section('content')
+
 @if(auth()->user()->role === 'admin')
+
 <div class="container-fluid mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            {{-- Validation errors --}}
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Terjadi kesalahan:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
             <div class="card-body px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white">
                 <div class="card-theme py-2 mb-3">
                     <h3 class="text-center fw-bold">🗓️ Tambah Jadwal Shift</h3>
