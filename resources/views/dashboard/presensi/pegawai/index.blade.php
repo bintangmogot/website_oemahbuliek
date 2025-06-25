@@ -12,7 +12,7 @@
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4 card-header-theme">
             <h3 class="fw-bold mb-0">Presensi Saya</h3>
             <div class="d-flex align-items-center gap-2">
-                <span class="text-muted">{{ Carbon\Carbon::now()->format('d F Y') }}</span>
+                <span class="text-white">{{ Carbon\Carbon::now()->format('d F Y') }}</span>
             </div>
         </div>
 

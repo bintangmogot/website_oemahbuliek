@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Presensi')
+@section('title', 'Form Presensi')
 
 @section('content')
 <x-session-status/>
@@ -12,8 +12,8 @@
         {{-- Header --}}
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4 card-header-theme">
             <div>
-                <h3 class="fw-bold mb-0">Detail Presensi</h3>
-                <p class="text-muted mb-0">{{ Carbon\Carbon::parse($jadwalShift->tanggal)->format('d F Y') }}</p>
+                <h3 class="fw-bold mb-0">Form Presensi</h3>
+                <p class="text-white mb-0">{{ Carbon\Carbon::parse($jadwalShift->tanggal)->format('d F Y') }}</p>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('pegawai.presensi.index') }}" class="btn btn-theme secondary">
@@ -37,8 +37,6 @@
                                 <p>{{ $jadwalShift->shift->nama_shift }}</p>
                             </div>
                             <div class="col-6">
-                                <strong>Kode Shift:</strong>
-                                <p>{{ $jadwalShift->shift->kode_shift }}</p>
                             </div>
                             <div class="col-6">
                                 <strong>Jam Mulai:</strong>
@@ -127,6 +125,16 @@
                                 <strong>Keterlambatan:</strong>
                                 <span class="text-danger">{{ $presensi->menit_terlambat }} menit</span>
                             </div>
+                            @endif
+                            @if($presensi->jam_keluar)
+                                @php
+                                    $overtime = $presensi->calculateOvertime();
+                                @endphp
+                                @if($overtime > 0)
+                                    <span class="badge bg-info ml-2">
+                                        Lembur {{ $overtime }} menit
+                                    </span>
+                                @endif
                             @endif
 
                             @if($presensi->catatan_admin)
@@ -317,12 +325,13 @@ function checkAndShowWarnings(action, callback) {
         const jadwalMulaiMinutes = jamMulaiHour * 60 + jamMulaiMin;
         const currentMinutes = currentHour * 60 + currentMin;
         const terlambatMinutes = currentMinutes - jadwalMulaiMinutes;
+        const totalTerlambatMinutes = terlambatMinutes - toleransiTerlambat
         
         if (terlambatMinutes > toleransiTerlambat) {
             warnings.push({
                 type: 'late',
                 title: '⚠️ Peringatan: Anda Akan Terlambat!',
-                message: `Anda terlambat ${terlambatMinutes} menit dari jadwal masuk (${jamMulai}). Keterlambatan akan dicatat dalam sistem dan mempengaruhi perhitungan kehadiran Anda.`,
+                message: `Anda <strong>terlambat ${totalTerlambatMinutes} menit</strong> dari jadwal masuk (${jamMulai}) [sudah dipotong toleransi ${toleransiTerlambat} menit]. Keterlambatan akan dicatat dalam sistem dan mempengaruhi perhitungan kehadiran Anda.`,
                 severity: 'danger'
             });
         }
@@ -340,25 +349,27 @@ function checkAndShowWarnings(action, callback) {
             warnings.push({
                 type: 'early_checkout',
                 title: '⚠️ Peringatan: Anda Akan Pulang Lebih Awal!',
-                message: `Anda akan pulang ${selisihMinutes} menit lebih awal dari jadwal selesai (${jamSelesai}). Ini akan dicatat sebagai pulang awal dan dapat mempengaruhi perhitungan gaji.`,
+                message: `Anda akan <strong>pulang ${selisihMinutes} menit lebih awal</strong> dari jadwal selesai (${jamSelesai}). Ini akan dicatat sebagai pulang awal dan dapat mempengaruhi perhitungan gaji.`,
                 severity: 'warning'
             });
         }
         
         // Cek potensi lembur
         const lemburMinutes = currentMinutes - jadwalSelesaiMinutes;
+        const totalLemburMinutes = lemburMinutes - batasLemburMin;
         if (lemburMinutes >= batasLemburMin) {
             warnings.push({
                 type: 'overtime',
                 title: '📋 Informasi: Lembur Terdeteksi',
-                message: `Anda akan lembur selama ${lemburMinutes} menit. Lembur akan dicatat dan perlu persetujuan admin untuk perhitungan upah lembur.`,
+                message: `Anda akan <strong>lembur</strong> selama <strong>${totalLemburMinutes} menit</strong>. [sudah dikurangi batas minimal lembur ${batasLemburMin} menit]. 
+                Lembur akan dicatat dan perlu persetujuan admin untuk perhitungan upah lembur.`,
                 severity: 'info'
             });
         } else if (lemburMinutes > 0 && lemburMinutes < batasLemburMin) {
             warnings.push({
                 type: 'overtime_minimal',
                 title: '📋 Informasi: Waktu Tambahan Minimal',
-                message: `Anda bekerja ${lemburMinutes} menit lebih lama, namun belum mencapai batas minimal lembur (${batasLemburMin} menit). Waktu ini tidak dihitung sebagai lembur.`,
+                message: `Anda <strong>bekerja ${lemburMinutes} menit lebih lama</strong>, namun belum mencapai batas minimal lembur (${batasLemburMin} menit). Waktu ini tidak dihitung sebagai lembur.`,
                 severity: 'secondary'
             });
         }
@@ -440,10 +451,10 @@ function showConfirmationModal(warnings, action, callback) {
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-theme primary p-2 px-3 px-md-4" data-bs-dismiss="modal">
                             <i class="fas fa-times me-1"></i>Batalkan
                         </button>
-                        <button type="button" class="btn btn-primary" id="confirmSubmit">
+                        <button type="button" class="btn btn-theme info p-2 px-3 px-md-4" id="confirmSubmit">
                             <i class="${actionIcon} me-1"></i>Ya, Lanjutkan ${actionText}
                         </button>
                     </div>

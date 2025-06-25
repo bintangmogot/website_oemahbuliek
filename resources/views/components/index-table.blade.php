@@ -81,12 +81,12 @@
                                         <ul class="dropdown-menu custom" aria-labelledby="actionsDropdown{{ $loop->index }}">
                                             @if(isset($routes['show']))
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route($routes['show'], [$routeKey => $item->id]) }}">Lihat</a>
+                                                    <a class="dropdown-item" href="{{ route($routes['show'], [$routeKey => $item->id]) }}"><i class="fas fa-eye"></i> Lihat</a>
                                                 </li>
                                             @endif
                                             @if(isset($routes['edit']))
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route($routes['edit'], [$routeKey => $item->id]) }}">Edit</a>
+                                                    <a class="dropdown-item" href="{{ route($routes['edit'], [$routeKey => $item->id]) }}"><i class="fas fa-edit"></i> Edit</a>
                                                 </li>
                                             @endif
                                             @if(isset($routes['destroy']))
@@ -94,7 +94,7 @@
                                                     <form action="{{ route($routes['destroy'], [$routeKey => $item->id]) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?')">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="dropdown-item delete">Hapus</button>
+                                                        <button type="submit" class="dropdown-item delete"><i class="fas fa-trash"></i> Hapus</button>
                                                     </form>
                                                 </li>
                                             @endif

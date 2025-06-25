@@ -187,25 +187,54 @@ class Presensi extends Model
         return $jamKeluarActual->lessThan($jamSelesaiShift);
     }
 
-    // Method untuk menghitung overtime
-    public function calculateOvertime(): int
-    {
-        if (!$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
-            return 0;
-        }
-
-        $jamSelesaiShift = Carbon::createFromFormat('H:i:s', $this->jadwalShift->shift->jam_selesai, 'Asia/Jakarta');
-        $jamKeluarActual = Carbon::parse($this->jam_keluar)->setTimezone('Asia/Jakarta');
-        
-        // Set tanggal yang sama untuk perbandingan
-        $jamSelesaiShift->setDate($jamKeluarActual->year, $jamKeluarActual->month, $jamKeluarActual->day);
-        
-        if ($jamKeluarActual->greaterThan($jamSelesaiShift)) {
-            return $jamKeluarActual->diffInMinutes($jamSelesaiShift);
-        }
-        
+// Method untuk menghitung overtime dengan batas minimum
+public function calculateOvertime(): int
+{
+    if (!$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
         return 0;
     }
+
+    $jamSelesaiShift = Carbon::createFromFormat('H:i:s', $this->jadwalShift->shift->jam_selesai, 'Asia/Jakarta');
+    $jamKeluarActual = Carbon::parse($this->jam_keluar)->setTimezone('Asia/Jakarta');
+    
+    // Set tanggal yang sama untuk perbandingan
+    $jamSelesaiShift->setDate($jamKeluarActual->year, $jamKeluarActual->month, $jamKeluarActual->day);
+    
+    if ($jamKeluarActual->greaterThan($jamSelesaiShift)) {
+        $totalMenitOver = $jamKeluarActual->diffInMinutes($jamSelesaiShift);
+        $batasMinimumLembur = $this->jadwalShift->shift->batas_lembur_min ?? 0;
+        
+        // Jika waktu over kurang dari batas minimum, tidak dihitung lembur
+        if ($totalMenitOver < $batasMinimumLembur) {
+            return 0;
+        }
+        
+        // Kembalikan waktu lembur yang sudah dikurangi batas minimum
+        return $totalMenitOver - $batasMinimumLembur;
+    }
+    
+    return 0;
+}
+
+// Method tambahan untuk mendapatkan total waktu over (sebelum dikurangi batas minimum)
+public function getTotalOvertimeMinutes(): int
+{
+    if (!$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
+        return 0;
+    }
+
+    $jamSelesaiShift = Carbon::createFromFormat('H:i:s', $this->jadwalShift->shift->jam_selesai, 'Asia/Jakarta');
+    $jamKeluarActual = Carbon::parse($this->jam_keluar)->setTimezone('Asia/Jakarta');
+    
+    // Set tanggal yang sama untuk perbandingan
+    $jamSelesaiShift->setDate($jamKeluarActual->year, $jamKeluarActual->month, $jamKeluarActual->day);
+    
+    if ($jamKeluarActual->greaterThan($jamSelesaiShift)) {
+        return $jamKeluarActual->diffInMinutes($jamSelesaiShift);
+    }
+    
+    return 0;
+}
 
     // Method untuk mendapatkan label status kehadiran
     public function getStatusKehadiranLabelAttribute(): string

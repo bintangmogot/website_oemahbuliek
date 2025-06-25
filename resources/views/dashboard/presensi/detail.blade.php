@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="mb-0 fw-bold">Detail Presensi</h1>
-                    <p class="mb-0 text-muted">{{ $presensi->user->name }} - {{ $presensi->tgl_presensi->format('d F Y') }}</p>
+                    <p class="mb-0 text-black fw-bold">{{ $presensi->user->nama_lengkap }} - {{ $presensi->tgl_presensi->format('d F Y') }}</p>
                 </div>
                 <div>
                     <a href="{{ Auth::user()->role === 'admin' ? route('admin.presensi.index') : route('pegawai.presensi.index') }}" 
@@ -84,6 +84,11 @@
                                     <td>:</td>
                                     <td>{{ $presensi->jadwalShift->shift->toleransi_terlambat ?? 0 }} menit</td>
                                 </tr>
+                                <tr>
+                                    <td><strong>Min. Lembur</strong></td>
+                                    <td>:</td>
+                                    <td>{{ $presensi->jadwalShift->shift->batas_lembur_min ?? 0 }} menit</td>
+                                </tr>
                             </table>
                         </div>
                     </div>
@@ -104,7 +109,7 @@
                                         @if($presensi->jam_masuk)
                                             {{ Carbon\Carbon::parse($presensi->jam_masuk)->format('H:i:s') }}
                                             @if($presensi->menit_terlambat > 0)
-                                                <span class="badge badge-warning ml-2">
+                                                <span class="badge badge bg-info ml-2">
                                                     Terlambat {{ $presensi->menit_terlambat }} menit
                                                 </span>
                                             @endif
@@ -289,9 +294,6 @@
                                      style="max-height: 200px; cursor: pointer;"
                                      data-toggle="modal" 
                                      data-target="#fotoMasukModal">
-                                <p class="text-muted mt-2 small">
-                                    Klik foto untuk memperbesar
-                                </p>
                             </div>
                         @else
                             <div class="text-center p-4 bg-light rounded">
@@ -316,9 +318,6 @@
                                      style="max-height: 200px; cursor: pointer;"
                                      data-toggle="modal" 
                                      data-target="#fotoKeluarModal">
-                                <p class="text-muted mt-2 small">
-                                    Klik foto untuk memperbesar
-                                </p>
                             </div>
                         @else
                             <div class="text-center p-4 bg-light rounded">

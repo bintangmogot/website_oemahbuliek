@@ -22,11 +22,11 @@ class GajiLembur extends Model
      */
     protected $fillable = [
         'users_id',
-        'pengaturan_gaji_id',
         'presensi_id',
         'tgl_lembur',
         'total_jam_lembur',
         'total_gaji_lembur',
+        'rate_lembur_per_jam', 
         'tgl_bayar',
         'status_pembayaran'
     ];
@@ -41,6 +41,7 @@ class GajiLembur extends Model
         'tgl_bayar' => 'date',
         'total_jam_lembur' => 'decimal:2',
         'total_gaji_lembur' => 'integer',
+        'rate_lembur_per_jam' => 'integer',
         'status_pembayaran' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -57,14 +58,6 @@ class GajiLembur extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'users_id');
-    }
-
-    /**
-     * Relasi ke PengaturanGaji
-     */
-    public function pengaturanGaji()
-    {
-        return $this->belongsTo(PengaturanGaji::class, 'pengaturan_gaji_id');
     }
 
     /**
@@ -182,6 +175,14 @@ class GajiLembur extends Model
     }
 
     /**
+     * Format rate lembur per jam dalam rupiah
+     */
+    public function getFormattedRateLemburPerJamAttribute()
+    {
+        return 'Rp ' . number_format($this->rate_lembur_per_jam, 0, ',', '.');
+    }
+
+    /**
      * Check apakah sudah dibayar
      */
     public function isPaid()
@@ -206,12 +207,12 @@ class GajiLembur extends Model
     }
 
     /**
-     * Hitung total gaji lembur berdasarkan pengaturan gaji
+     * Hitung total gaji lembur berdasarkan rate yang tersimpan
      */
     public function hitungTotalGajiLembur()
     {
-        if ($this->pengaturanGaji && $this->pengaturanGaji->gaji_lembur_per_jam > 0) {
-            $this->total_gaji_lembur = $this->total_jam_lembur * $this->pengaturanGaji->gaji_lembur_per_jam;
+        if ($this->rate_lembur_per_jam > 0) {
+            $this->total_gaji_lembur = $this->total_jam_lembur * $this->rate_lembur_per_jam;
             $this->save();
             return $this->total_gaji_lembur;
         }
@@ -270,17 +271,26 @@ class GajiLembur extends Model
 
         // Event ketika membuat record baru
         static::creating(function ($gajiLembur) {
-            // Auto-hitung total gaji lembur jika belum diset
-            if ($gajiLembur->total_gaji_lembur == 0 && $gajiLembur->pengaturanGaji) {
-                $gajiLembur->total_gaji_lembur = $gajiLembur->total_jam_lembur * $gajiLembur->pengaturanGaji->gaji_lembur_per_jam;
+            $rateLembur = 50000; // Default rate lembur per jam
+            // Auto-fill rate lembur dari pengaturan gaji user
+            if (empty($gajiLembur->rate_lembur_per_jam)) {
+                $user = User::with('pengaturanGaji')->find($gajiLembur->users_id);
+                if ($user && $user->pengaturanGaji) {
+                    $gajiLembur->rate_lembur_per_jam = $user->pengaturanGaji->tarif_lembur_per_jam;
+                }
+            }
+            
+            // Auto-hitung total gaji lembur
+            if ($gajiLembur->rate_lembur_per_jam > 0) {
+                $gajiLembur->total_gaji_lembur = $gajiLembur->total_jam_lembur * $gajiLembur->rate_lembur_per_jam;
             }
         });
 
         // Event ketika mengupdate record
         static::updating(function ($gajiLembur) {
-            // Auto-hitung ulang jika jam lembur berubah
-            if ($gajiLembur->isDirty('total_jam_lembur') && $gajiLembur->pengaturanGaji) {
-                $gajiLembur->total_gaji_lembur = $gajiLembur->total_jam_lembur * $gajiLembur->pengaturanGaji->gaji_lembur_per_jam;
+            // Auto-hitung ulang jika jam lembur berubah, tapi rate tidak berubah
+            if ($gajiLembur->isDirty('total_jam_lembur') && $gajiLembur->rate_lembur_per_jam > 0) {
+                $gajiLembur->total_gaji_lembur = $gajiLembur->total_jam_lembur * $gajiLembur->rate_lembur_per_jam;
             }
         });
     }

@@ -89,10 +89,20 @@
               <span class="badge">{{ $unreadMessages }}</span>
             @endif
           </a>
+
+          <a href="{{ route('jadwal-shift.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
+          <i class="fas fa-user-tie"></i>
+            <span>Jadwal Pegawai</span>
+          </a>
           
           <a href="{{ route('admin.presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Presensi Pegawai</span>
+          </a>
+
+          <a href="{{ route('gaji-lembur.index') }}" class="menu-item {{ request()->is('dashboard/gaji-lembur*') ? 'active' : '' }}" >
+          <i class="bi bi-person-workspace"></i>
+            <span>Lembur Pegawai</span>
           </a>
 
           <a href="{{ route('user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
@@ -103,11 +113,6 @@
           <a href="{{ route('shift.index') }}" class="menu-item {{ request()->is('dashboard/shift*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
             <span>Shift</span>
-          </a>
-
-          <a href="{{ route('jadwal-shift.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
-          <i class="fas fa-user-tie"></i>
-            <span>Jadwal Pegawai</span>
           </a>
           
           <a href="{{ route('pengaturan_gaji.index') }}" class="menu-item {{ request()->is('dashboard/pengaturan-gaji*') ? 'active' : '' }}" >
@@ -133,6 +138,11 @@
               <span class="badge">{{ $unreadMessages }}</span>
             @endif
           </a>
+
+          <a href="{{ route('gaji-lembur.pegawai.index') }}" class="menu-item {{ request()->is('dashboard/gaji-lembur*') ? 'active' : '' }}" >
+          <i class="bi bi-person-workspace"></i>
+            <span>Laporan Lembur</span>
+          </a>
           
           <a href="{{ route('pegawai.presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
             <i class="fas fa-clock"></i>
@@ -141,7 +151,7 @@
 
           <a href="{{ route('jadwal-shift.index') }}" class="menu-item {{ request()->is('dashboard/jadwal-shift*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
-            <span>Jadwal Pegawai</span>
+            <span>Jadwal Shift</span>
           </a>
 
           <a href="#" class="menu-item {{ request()->is('dashboard/inventaris*') ? 'active' : '' }}">

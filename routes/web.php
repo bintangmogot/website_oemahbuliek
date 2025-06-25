@@ -10,6 +10,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\JadwalShiftController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PengaturanGajiController;
+use App\Http\Controllers\GajiLemburController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -128,6 +129,25 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
     Route::get('shift',                     [ShiftController::class,'index'])->name('index');
     Route::get('shift/{shift}',             [ShiftController::class,'show'])->name('show');
 });
+
+
+// ————— TABEL GAJI LEMBUR —————
+    // Admin routes
+    Route::middleware('role:admin')->name('gaji-lembur.')->group(function () {
+        Route::post('gaji-lembur/batch-payment', [GajiLemburController::class, 'batchUpdatePayment'])->name('batch-payment');
+        Route::get('gaji-lembur/', [GajiLemburController::class, 'index'])->name('index');
+        Route::get('gaji-lembur/laporan', [GajiLemburController::class, 'laporan'])->name('laporan');
+        Route::put('dashboard/gaji-lembur/{gajiLembur}/payment', [GajiLemburController::class, 'updatePayment'])->name('update-payment');
+
+    });
+    
+    // Pegawai routes
+    Route::middleware('role:pegawai')->name('gaji-lembur.')->group(function () {
+        Route::get('gaji-lembur/saya', [GajiLemburController::class, 'pegawaiIndex'])->name('pegawai.index');
+    });
+    
+    // Shared routes
+    Route::get('gaji-lembur/{gajiLembur}', [GajiLemburController::class, 'show'])->name('gaji-lembur.show');
 
     
 
