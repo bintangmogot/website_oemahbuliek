@@ -24,7 +24,7 @@ class JadwalShiftFactory extends Factory
         return [
             'shift_id'   => $shift->id,
             'users_id'   => $user->id,
-            'tanggal'    => $this->faker->dateTimeBetween('now', '+1 month')->format('Y-m-d'),
+            'tanggal'    => $this->faker->dateTimeBetween('+2 days', '+1 month')->format('Y-m-d'),
             'status'     => $this->faker->randomElement([0, 1, 2]), // 0=Cancelled, 1=Active, 2=Completed
         ];
     }

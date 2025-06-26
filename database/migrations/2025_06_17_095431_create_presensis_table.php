@@ -20,11 +20,6 @@ return new class extends Migration
             //       ->onDelete('set null')
             //       ->onUpdate('cascade');
                   
-            // $table->foreignId('gaji_lembur_id')->nullable()
-            //       ->constrained('gaji_lembur')
-            //       ->onDelete('set null')
-            //       ->onUpdate('cascade');
-                  
             $table->foreignId('users_id')
                   ->constrained('users')
                   ->onDelete('restrict')

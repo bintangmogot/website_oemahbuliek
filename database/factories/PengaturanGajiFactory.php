@@ -1,21 +1,62 @@
 <?php
+
 namespace Database\Factories;
 
-use App\Models\PengaturanGaji;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\PengaturanGaji;
 
 class PengaturanGajiFactory extends Factory
 {
     protected $model = PengaturanGaji::class;
 
-    public function definition()
-    {
-        return [
-            'nama' => $this->faker->unique()->word,
-            'tarif_kerja_per_jam' => $this->faker->numberBetween(5000,20000),
-            'tarif_lembur_per_jam' => $this->faker->numberBetween(10000,30000),
-            'potongan_terlambat_per_menit' => $this->faker->numberBetween(100,1000),
-            'status' => 1,
-        ];
-    }
+    /** 
+     * Daftar posisi dan base rate default-nya 
+     */
+    protected static $rates = [
+        'Store Manager'       => 50000,
+        'Assistant Manager'   => 40000,
+        'Head Chef'           => 40000,
+        'Line Cook'           => 25000,
+        'Staff Koki'          => 22000,
+        'Server'              => 16000,
+        'Staff Kasir'         => 18000,
+        'Bartender Assistant' => 17000,
+        'Dishwasher'          => 13000,
+        // ... tambahkan sesuai kebutuhan
+    ];
+
+public function definition()
+{
+    // List posisi dan level
+    $posisiList = [
+        'Store Manager', 'Assistant Manager', 'Head Chef', 'Line Cook',
+        'Staff Koki', 'Server', 'Staff Kasir', 'Bartender Assistant',
+        'Dishwasher', 'Staff Pelayan', 'Staff Cleaning'
+    ];
+    $levelList = ['Junior','Senior','Lead','Trainee'];
+
+    // Gabungkan posisi + level, lalu pakai unique() untuk nama
+    $nama = $this->faker
+        ->unique()
+        ->randomElement($posisiList)
+        . ' '
+        . $this->faker->randomElement($levelList);
+
+    // Ambil base rate
+    $base = self::$rates[$this->faker->randomElement($posisiList)] ?? 15000;
+
+    // Hitung tarif
+    $tarifKerja  = $base + $this->faker->numberBetween(-5, 5) * 1000;
+    $tarifLembur = (int) (round($tarifKerja * 1.5 / 1000) * 1000);
+    $potongan    = $this->faker->randomElement(range(200, 1000, 50));
+
+    return [
+        'nama'                         => $nama,
+        'tarif_kerja_per_jam'          => $tarifKerja,
+        'tarif_lembur_per_jam'         => $tarifLembur,
+        'potongan_terlambat_per_menit' => $potongan,
+        'status'                       => $this->faker->boolean(80),
+    ];
+}
+
 }

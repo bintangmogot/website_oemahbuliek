@@ -6,6 +6,12 @@ use Illuminate\Database\Seeder;
 use App\Models\JadwalShift;
 use App\Models\Shift;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+
+
+DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+DB::table('jadwal_shift')->truncate();
+DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
 class JadwalShiftSeeder extends Seeder
 {
@@ -36,8 +42,8 @@ class JadwalShiftSeeder extends Seeder
         }
 
         // Membuat satu jadwal shift khusus (contoh)
-        JadwalShift::create([
-            'shift_id'   => $shift->id,  // UBAH dari 'shift_id' (sudah benar)
+        JadwalShift::firstOrCreate([
+            'shift_id'   => $shift->id, 
             'users_id'   => $user->id,
             'tanggal'    => now()->addDays(1)->toDateString(), // Tanggal besok
             'status'     => 1, // Status aktif
@@ -45,6 +51,8 @@ class JadwalShiftSeeder extends Seeder
 
         // Contoh: buat 10 periode jadwal shift secara acak
         // Pastikan factory JadwalShift menggunakan kolom yang benar
-        JadwalShift::factory()->count(10)->create();
+        JadwalShift::factory()->count(50)->create();
+
+        $this->command->info('Jadwal Shift seeder completed: ' . JadwalShift::count() . ' jadwal created.');
     }
 }
