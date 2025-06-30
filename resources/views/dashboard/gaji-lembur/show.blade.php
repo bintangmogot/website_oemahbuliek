@@ -12,11 +12,11 @@
                 <p class="text-white ps-1 mb-0">{{ $gajiLembur->user->nama_lengkap }} - {{ $gajiLembur->tgl_lembur->format('d F Y') }}</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ url()->previous() }}" class="btn btn-theme secondary">
+                <a href="{{ url()->previous() }}" class="btn btn-theme secondary p-2 px-md-3">
                     <i class="bi bi-arrow-left"></i> Kembali
                 </a>
                 @if(Auth::user()->role === 'admin')
-                    <button class="btn btn-theme primary" 
+                    <button class="btn btn-theme primary p-2 px-md-3" 
                         onclick="updatePayment({{ $gajiLembur->id }}, '{{ $gajiLembur->status_pembayaran }}')"
                         data-update-route="{{ route('gaji-lembur.update-payment', $gajiLembur->id) }}">                        
                     <i class="fas fa-money-bill"></i> Update Pembayaran
@@ -32,7 +32,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Status Pembayaran</h5>
                         <div class="text-center py-3 row align-items-center ">
-                            <span class="badge bg-info fs-6 {{ $gajiLembur->status_pembayaran_badge }} px-4 py-3">
+                            <span class="badge {{ $gajiLembur->status_pembayaran_badge }} fs-6 px-4 py-3">
                                 {{ $gajiLembur->status_pembayaran_label }}
                             </span>
                         </div>
@@ -191,7 +191,6 @@
                         <select name="status_pembayaran" id="statusPembayaranSelect" class="form-select" required>
                             <option value="0">Belum Dibayar</option>
                             <option value="1">Sudah Dibayar</option>
-                            <option value="2">Dibayar Sebagian</option>
                         </select>
                     </div>
                     <div class="mb-3" id="tglBayarDiv">

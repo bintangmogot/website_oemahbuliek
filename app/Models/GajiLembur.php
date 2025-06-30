@@ -26,6 +26,7 @@ class GajiLembur extends Model
         'tgl_lembur',
         'total_jam_lembur',
         'total_gaji_lembur',
+        'tipe_lembur',
         'rate_lembur_per_jam', 
         'tgl_bayar',
         'status_pembayaran'
@@ -50,8 +51,6 @@ class GajiLembur extends Model
     // Constants untuk status pembayaran
     const STATUS_PEMBAYARAN_UNPAID = 0;
     const STATUS_PEMBAYARAN_PAID = 1;
-    const STATUS_PEMBAYARAN_PARTIAL = 2;
-
     /**
      * Relasi ke User
      */
@@ -67,6 +66,20 @@ class GajiLembur extends Model
     {
         return $this->belongsTo(Presensi::class, 'presensi_id');
     }
+
+    public function shift()
+{
+    return $this->hasOneThrough(
+        Shift::class,
+        Presensi::class,
+        'id', // Foreign key pada presensi table
+        'id', // Foreign key pada shifts table  
+        'presensi_id', // Local key pada gaji_lembur table
+        'jadwal_shift_id' // Local key pada presensi table
+    )->join('jadwal_shift', 'presensi.jadwal_shift_id', '=', 'jadwal_shift.id')
+     ->where('jadwal_shift.shift_id', '=', 'shifts.id')
+     ->select('shifts.*');
+}
 
     /**
      * Scope untuk filter berdasarkan status pembayaran
@@ -117,6 +130,28 @@ class GajiLembur extends Model
         return $query->where('status_pembayaran', self::STATUS_PEMBAYARAN_PAID);
     }
 
+
+    // Method untuk mendapatkan nama shift dengan fallback
+public function getNamaShiftAttribute()
+{
+    if (!$this->presensi) {
+        $this->load('presensi');
+    }
+    
+    if (!$this->presensi) {
+        return null;
+    }
+    
+    if (!$this->presensi->relationLoaded('jadwalShift')) {
+        $this->presensi->load('jadwalShift.shift');
+    }
+    
+    return $this->presensi->jadwalShift && 
+           $this->presensi->jadwalShift->shift 
+           ? $this->presensi->jadwalShift->shift->nama_shift 
+           : null;
+}
+
     /**
      * Get status pembayaran label
      */
@@ -127,8 +162,6 @@ class GajiLembur extends Model
                 return 'Belum Dibayar';
             case self::STATUS_PEMBAYARAN_PAID:
                 return 'Sudah Dibayar';
-            case self::STATUS_PEMBAYARAN_PARTIAL:
-                return 'Dibayar Sebagian';
             default:
                 return 'Unknown';
         }
@@ -141,13 +174,11 @@ class GajiLembur extends Model
     {
         switch ($this->status_pembayaran) {
             case self::STATUS_PEMBAYARAN_UNPAID:
-                return 'badge-danger';
+                return 'bg-danger';
             case self::STATUS_PEMBAYARAN_PAID:
-                return 'badge-success';
-            case self::STATUS_PEMBAYARAN_PARTIAL:
-                return 'badge-warning';
+                return 'bg-success';
             default:
-                return 'badge-secondary';
+                return 'bg-secondary';
         }
     }
 
@@ -198,13 +229,6 @@ class GajiLembur extends Model
         return $this->status_pembayaran === self::STATUS_PEMBAYARAN_UNPAID;
     }
 
-    /**
-     * Check apakah dibayar sebagian
-     */
-    public function isPartial()
-    {
-        return $this->status_pembayaran === self::STATUS_PEMBAYARAN_PARTIAL;
-    }
 
     /**
      * Hitung total gaji lembur berdasarkan rate yang tersimpan
@@ -271,14 +295,27 @@ class GajiLembur extends Model
 
         // Event ketika membuat record baru
         static::creating(function ($gajiLembur) {
-            $rateLembur = 50000; // Default rate lembur per jam
-            // Auto-fill rate lembur dari pengaturan gaji user
-            if (empty($gajiLembur->rate_lembur_per_jam)) {
-                $user = User::with('pengaturanGaji')->find($gajiLembur->users_id);
-                if ($user && $user->pengaturanGaji) {
-                    $gajiLembur->rate_lembur_per_jam = $user->pengaturanGaji->tarif_lembur_per_jam;
+        if (empty($gajiLembur->rate_lembur_per_jam)) {
+            $user = User::with('pengaturanGaji')->find($gajiLembur->users_id);
+            if ($user && $user->pengaturanGaji) {
+                $gajiLembur->rate_lembur_per_jam = $user->pengaturanGaji->tarif_lembur_per_jam;
+            } else {
+                // Default rate berdasarkan tipe shift
+                $presensi = Presensi::with('jadwalShift.shift')->find($gajiLembur->presensi_id);
+                if ($presensi && $presensi->jadwalShift && $presensi->jadwalShift->shift) {
+                    $shift = $presensi->jadwalShift->shift;
+                    if ($shift->is_shift_lembur == 1) {
+                        // Rate untuk shift lembur bisa berbeda
+                        $gajiLembur->rate_lembur_per_jam = $shift->tarif_shift_lembur ?? 75000; // Default rate shift lembur
+                    } else {
+                        // Rate untuk overtime normal
+                        $gajiLembur->rate_lembur_per_jam = 50000; // Default rate overtime
+                    }
+                } else {
+                    $gajiLembur->rate_lembur_per_jam = 50000; // Fallback default
                 }
             }
+        }
             
             // Auto-hitung total gaji lembur
             if ($gajiLembur->rate_lembur_per_jam > 0) {
@@ -294,4 +331,281 @@ class GajiLembur extends Model
             }
         });
     }
+
+// Di Model GajiLembur
+public function getJamMulaiAttribute()
+{
+    // Jika sudah ada nilai di database
+    if (!empty($this->attributes['jam_mulai'])) {
+        return $this->attributes['jam_mulai'];
+    }
+
+    // Convert tanggal ke format string
+    $tanggalLembur = $this->tgl_lembur instanceof Carbon 
+                     ? $this->tgl_lembur->format('Y-m-d') 
+                     : $this->tgl_lembur;
+
+    $presensi = Presensi::where('users_id', $this->users_id)
+                       ->whereDate('tgl_presensi', $tanggalLembur)
+                       ->whereIn('status_lembur', [1, 2])
+                       ->first();
+
+    return $presensi && $presensi->jam_masuk ? 
+           Carbon::parse($presensi->jam_masuk)->format('H:i') : null;
+}
+
+public function getJamSelesaiAttribute()
+{
+    // Jika sudah ada nilai di database
+    if (!empty($this->attributes['jam_selesai'])) {
+        return $this->attributes['jam_selesai'];
+    }
+
+    // Convert tanggal ke format string
+    $tanggalLembur = $this->tgl_lembur instanceof Carbon 
+                     ? $this->tgl_lembur->format('Y-m-d') 
+                     : $this->tgl_lembur;
+
+    $presensi = Presensi::where('users_id', $this->users_id)
+                       ->whereDate('tgl_presensi', $tanggalLembur)
+                       ->whereIn('status_lembur', [1, 2])
+                       ->first();
+
+    return $presensi && $presensi->jam_keluar ? 
+           Carbon::parse($presensi->jam_keluar)->format('H:i') : null;
+}
+
+
+// Tambahkan method ini di Model GajiLembur sebelum boot() method
+
+/**
+ * Check apakah ini shift lembur
+ */
+public function isShiftLembur()
+{
+    return $this->tipe_lembur === 'shift_lembur';
+}
+
+/**
+ * Get tipe lembur (shift lembur atau overtime)
+ */
+// public function getTipeLemburAttribute()
+// {
+//     // Coba akses langsung melalui relasi yang sudah di-load
+//     if ($this->presensi && 
+//         $this->presensi->jadwalShift && 
+//         $this->presensi->jadwalShift->shift) {
+//         return $this->presensi->jadwalShift->shift->is_shift_lembur == 1 ? 'Shift Lembur' : 'Overtime';
+//     }
+    
+//     // Fallback ke method isShiftLembur jika relasi belum di-load
+//     return $this->isShiftLembur() ? 'Shift Lembur' : 'Overtime';
+// }
+
+/**
+ * Get label untuk tipe lembur dengan badge
+ */
+public function getTipeLemburBadgeAttribute()
+{
+    return $this->tipe_lembur === 'Shift Lembur' ? 'bg-info' : 'bg-warning';
+}
+
+public function getTipeLemburLabelAttribute()
+{
+    return $this->isShiftLembur() ? 'Shift Lembur' : 'Overtime';
+}
+/**
+ * Get keterangan lengkap tentang perhitungan lembur
+ */
+public function getKeteranganLemburAttribute()
+{
+    if ($this->isShiftLembur()) {
+        return "Shift Lembur - Seluruh {$this->formatted_total_jam_lembur} jam kerja dihitung sebagai lembur";
+    } else {
+        return "Overtime - Lembur {$this->formatted_total_jam_lembur} jam setelah jam kerja normal";
+    }
+}
+
+/**
+ * Scope untuk filter berdasarkan tipe shift
+ */
+public function scopeByTipeShift($query, $isShiftLembur = true)
+{
+    return $query->whereHas('presensi.jadwalShift.shift', function($q) use ($isShiftLembur) {
+        $q->where('is_shift_lembur', $isShiftLembur ? 1 : 0);
+    });
+}
+
+/**
+ * Static method untuk create gaji lembur berdasarkan tipe shift
+ */
+public static function createFromPresensi(Presensi $presensi)
+{
+    // Pastikan relasi yang diperlukan sudah di-load
+    $presensi->load(['jadwalShift.shift', 'user.pengaturanGaji']);
+
+    // Jika presensi tidak memiliki jadwalShift atau shift, batalkan
+    if (!$presensi->jadwalShift || !$presensi->jadwalShift->shift) {
+        \Illuminate\Support\Facades\Log::warning("Presensi ID {$presensi->id} tidak memiliki jadwal shift yang valid");
+        return null;
+    }
+
+    $shift = $presensi->jadwalShift->shift;
+    $statusLembur = $presensi->status_lembur;
+    
+    // Logika penentuan apakah perlu dibuat record gaji lembur
+    $shouldCreateRecord = false;
+    $tipe = null;
+    $jamLembur = 0;
+
+    if ($shift->is_shift_lembur == 1) {
+        // Shift Lembur: semua status lembur 1, 2, 3 akan dibuat record
+        if (in_array($statusLembur, [1, 2, 3])) {
+            $shouldCreateRecord = true;
+            $tipe = 'shift_lembur';
+            // Seluruh jam kerja efektif dihitung sebagai lembur
+            $menitKerjaEfektif = $presensi->calculateEffectiveWorkHours(); // menit
+            $jamLembur = round($menitKerjaEfektif / 60, 2);
+        }
+    } else {
+        // Shift Normal: hanya status lembur 1 dan 2 (overtime) yang dibuat record
+        if (in_array($statusLembur, [1, 2])) {
+            $shouldCreateRecord = true;
+            $tipe = 'overtime';
+            // Hitung overtime normal: setelah jam_selesai + batas minimum
+            $jamLembur = round($presensi->calculateOvertime() / 60, 2);
+            
+            // Jika tidak ada jam overtime, batalkan
+            if ($jamLembur <= 0) {
+                $shouldCreateRecord = false;
+            }
+        }
+    }
+
+    // Jika tidak perlu dibuat record, return null
+    if (!$shouldCreateRecord) {
+        return null;
+    }
+
+    // Buat atau perbarui record gaji_lembur
+    $gajiLembur = self::updateOrCreate(
+        [
+            'presensi_id' => $presensi->id,
+            'users_id'    => $presensi->users_id,
+            'tgl_lembur'  => $presensi->tgl_presensi,
+        ],
+        [
+            'total_jam_lembur'   => $jamLembur,
+            'tipe_lembur'        => $tipe,
+            'status_pembayaran'  => self::STATUS_PEMBAYARAN_UNPAID,
+            'keterangan_lembur'  => $tipe === 'shift_lembur'
+                ? "Shift Lembur – seluruh {$jamLembur} jam kerja efektif"
+                : "Overtime – {$jamLembur} jam setelah jam kerja normal",
+            // total_gaji_lembur dan rate akan di-handle di boot creating callback
+        ]
+    );
+
+    \Illuminate\Support\Facades\Log::info("Gaji Lembur Created/Updated – ID: {$gajiLembur->id}, Jam: {$jamLembur}, Tipe: {$tipe}, Status Lembur: {$statusLembur}");
+
+    return $gajiLembur;
+}
+
+/**
+ * Scope untuk filter shift lembur saja
+ */
+public function scopeShiftLembur($query)
+{
+    return $query->where('tipe_lembur', 'shift_lembur');
+}
+
+/**
+ * Scope untuk filter overtime saja
+ */
+public function scopeOvertime($query)
+{
+    return $query->where('tipe_lembur', 'overtime');
+}
+
+// Perbaikan 2: Scope untuk menampilkan SEMUA data lembur (shift lembur + overtime)
+public function scopeSemuaLembur($query)
+{
+    return $query->where(function($q) {
+        // Include shift lembur
+        $q->where('tipe_lembur', 'shift_lembur')
+          ->orWhereHas('presensi.jadwalShift.shift', function($shiftQuery) {
+              $shiftQuery->where('is_shift_lembur', 1);
+          })
+          // Include overtime dari shift normal
+          ->orWhere(function($overtimeQuery) {
+              $overtimeQuery->where('tipe_lembur', 'overtime')
+                           ->where('total_jam_lembur', '>', 0);
+          })
+          // Include overtime yang belum ada tipe_lembur tapi ada jam lembur
+          ->orWhere(function($fallbackQuery) {
+              $fallbackQuery->whereNull('tipe_lembur')
+                           ->where('total_jam_lembur', '>', 0);
+          });
+    });
+}
+
+// Method untuk sinkronisasi tipe_lembur berdasarkan shift
+public function syncTipeLembur()
+{
+    $tipeLembur = $this->isShiftLembur() ? 'shift_lembur' : 'overtime';
+    
+    if ($this->tipe_lembur !== $tipeLembur) {
+        $this->update(['tipe_lembur' => $tipeLembur]);
+    }
+    
+    return $tipeLembur;
+}
+
+
+/**
+ * Accessor untuk tipe lembur
+ */
+public function getTipeLemburAttribute($value)
+{
+    // Jika sudah ada value di database, gunakan itu
+    if (!empty($value)) {
+        return $value === 'shift_lembur' ? 'Shift Lembur' : 'Overtime';
+    }
+    
+    // Fallback: cek dari presensi jika tipe_lembur kosong
+    if ($this->presensi) {
+        if (!$this->presensi->relationLoaded('jadwalShift')) {
+            $this->presensi->load('jadwalShift.shift');
+        }
+        
+        $shift = $this->presensi->jadwalShift->shift ?? null;
+        if ($shift && $shift->is_shift_lembur == 1) {
+            return 'Shift Lembur';
+        }
+    }
+    
+    return 'Overtime'; // default
+}
+
+/**
+ * Get raw tipe lembur value
+ */
+public function getTipeLemburRawAttribute()
+{
+    if (!empty($this->attributes['tipe_lembur'])) {
+        return $this->attributes['tipe_lembur'];
+    }
+    
+    // Fallback: cek dari presensi
+    if ($this->presensi) {
+        if (!$this->presensi->relationLoaded('jadwalShift')) {
+            $this->presensi->load('jadwalShift.shift');
+        }
+        
+        $shift = $this->presensi->jadwalShift->shift ?? null;
+        return ($shift && $shift->is_shift_lembur == 1) ? 'shift_lembur' : 'overtime';
+    }
+    
+    return 'overtime';
+}
+
 }

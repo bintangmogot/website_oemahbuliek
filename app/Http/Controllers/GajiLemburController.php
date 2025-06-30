@@ -52,12 +52,42 @@ class GajiLemburController extends Controller
             $query->byUser($request->user_id);
         }
 
-        $gajiLembur = $query->paginate(20);
-        
-        // Statistik
-        $totalUnpaid = GajiLembur::unpaid()->sum('total_gaji_lembur');
-        $totalPaid = GajiLembur::paid()->sum('total_gaji_lembur');
-        $countUnpaid = GajiLembur::unpaid()->count();
+    // Filter berdasarkan tipe lembur - MENGGUNAKAN SCOPE
+// Statistik berdasarkan filter yang sama
+$baseQuery = GajiLembur::query();
+
+// Terapkan filter yang sama seperti query utama
+if ($request->filled('status_pembayaran')) {
+    $baseQuery->byStatusPembayaran($request->status_pembayaran);
+}
+
+if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
+    $baseQuery->whereBetween('tgl_lembur', [$request->tanggal_dari, $request->tanggal_sampai]);
+} elseif ($request->filled('tanggal_dari')) {
+    $baseQuery->whereDate('tgl_lembur', '>=', $request->tanggal_dari);
+} elseif ($request->filled('tanggal_sampai')) {
+    $baseQuery->whereDate('tgl_lembur', '<=', $request->tanggal_sampai);
+}
+
+if ($request->filled('bulan') && $request->filled('tahun')) {
+    $baseQuery->byBulanTahun($request->bulan, $request->tahun);
+}
+
+if ($request->filled('user_id')) {
+    $baseQuery->byUser($request->user_id);
+}
+
+// Statistik umum
+$totalUnpaid = (clone $baseQuery)->unpaid()->sum('total_gaji_lembur');
+$totalPaid = (clone $baseQuery)->paid()->sum('total_gaji_lembur');
+$countUnpaid = (clone $baseQuery)->unpaid()->count();
+
+// Statistik berdasarkan tipe lembur
+$shiftLemburCount = (clone $baseQuery)->shiftLembur()->count();
+$overtimeCount = (clone $baseQuery)->overtime()->count();
+
+
+$gajiLembur = $query->paginate(20);
 
         // Data untuk filter
         $users = User::where('role', 'pegawai')->get(['id', 'nama_lengkap']);
@@ -67,10 +97,62 @@ class GajiLemburController extends Controller
             'totalUnpaid', 
             'totalPaid', 
             'countUnpaid',
+            'shiftLemburCount',
+            'overtimeCount',
             'users'
         ));
     }
 
+    public function detailPegawai(Request $request, $userId)
+    {
+        $pegawai = User::findOrFail($userId);
+        
+        $tanggalMulai = $request->get('tanggal_mulai');
+        $tanggalSelesai = $request->get('tanggal_selesai');
+        $statusPembayaran = $request->get('status_pembayaran');
+        
+        // Query gaji lembur dengan pagination
+        $gajiLemburQuery = GajiLembur::where('users_id', $userId)
+            ->when($tanggalMulai, function($query) use ($tanggalMulai) {
+                return $query->where('tgl_lembur', '>=', $tanggalMulai);
+            })
+            ->when($tanggalSelesai, function($query) use ($tanggalSelesai) {
+                return $query->where('tgl_lembur', '<=', $tanggalSelesai);
+            })
+            ->when($statusPembayaran !== null, function($query) use ($statusPembayaran) {
+                return $query->where('status_pembayaran', $statusPembayaran);
+            })
+            ->orderBy('tgl_lembur', 'DESC');
+        
+        $gajiLembur = $gajiLemburQuery->paginate(15);
+        
+        // Statistik
+        $statistik = GajiLembur::where('users_id', $userId)
+            ->when($tanggalMulai, function($query) use ($tanggalMulai) {
+                return $query->where('tgl_lembur', '>=', $tanggalMulai);
+            })
+            ->when($tanggalSelesai, function($query) use ($tanggalSelesai) {
+                return $query->where('tgl_lembur', '<=', $tanggalSelesai);
+            })
+            ->when($statusPembayaran !== null, function($query) use ($statusPembayaran) {
+                return $query->where('status_pembayaran', $statusPembayaran);
+            })
+            ->selectRaw('
+                COUNT(DISTINCT DATE(tgl_lembur)) as total_hari,
+                SUM(total_jam_lembur) as total_jam,
+                SUM(CASE WHEN status_pembayaran = 1 THEN total_gaji_lembur ELSE 0 END) as total_sudah_dibayar,
+                SUM(CASE WHEN status_pembayaran != 1 THEN total_gaji_lembur ELSE 0 END) as total_belum_dibayar
+            ')
+            ->first();
+        
+        return view('dashboard.gaji-lembur.detail-pegawai', compact(
+            'pegawai',
+            'gajiLembur',
+            'statistik',
+            'tanggalMulai',
+            'tanggalSelesai'
+        ));
+    }
     /**
      * Tampilan untuk Pegawai - Lihat gaji lembur sendiri
      */
@@ -212,41 +294,64 @@ class GajiLemburController extends Controller
     /**
      * Laporan ringkas gaji lembur per periode
      */
-    public function laporan(Request $request)
-    {
-        $bulan = $request->get('bulan', Carbon::now()->month);
-        $tahun = $request->get('tahun', Carbon::now()->year);
+public function laporan(Request $request)
+{
+    $tanggalMulai = $request->get('tanggal_mulai');
+    $tanggalSelesai = $request->get('tanggal_selesai');
+    $statusPembayaran = $request->get('status_pembayaran');
+    
+    // Query laporan per pegawai dengan agregasi
+    $laporanPerPegawai = DB::table('gaji_lembur')
+        ->join('users', 'gaji_lembur.users_id', '=', 'users.id')
+        ->select([
+            'users.id as user_id',
+            'users.nama_lengkap',
+            'users.jabatan',
+            DB::raw('COUNT(DISTINCT DATE(gaji_lembur.tgl_lembur)) as total_hari_lembur'),
+            DB::raw('SUM(gaji_lembur.total_jam_lembur) as total_jam'),
+            DB::raw('SUM(gaji_lembur.total_gaji_lembur) as total_gaji'),
+            DB::raw('SUM(CASE WHEN gaji_lembur.status_pembayaran = 1 THEN gaji_lembur.total_gaji_lembur ELSE 0 END) as total_sudah_dibayar'),
+            DB::raw('SUM(CASE WHEN gaji_lembur.status_pembayaran != 1 THEN gaji_lembur.total_gaji_lembur ELSE 0 END) as total_belum_dibayar')
+        ])
+        ->when($tanggalMulai, function($query) use ($tanggalMulai) {
+            return $query->where('gaji_lembur.tgl_lembur', '>=', $tanggalMulai);
+        })
+        ->when($tanggalSelesai, function($query) use ($tanggalSelesai) {
+            return $query->where('gaji_lembur.tgl_lembur', '<=', $tanggalSelesai);
+        })
+        ->when($statusPembayaran !== null, function($query) use ($statusPembayaran) {
+            return $query->where('gaji_lembur.status_pembayaran', $statusPembayaran);
+        })
+        ->groupBy('users.id', 'users.nama_lengkap', 'users.jabatan')
+        ->orderBy('total_gaji', 'DESC')
+        ->get();
+    
+    // Total keseluruhan
+    $totalKeseluruhan = DB::table('gaji_lembur')
+        ->select([
+            DB::raw('COUNT(*) as total_record'),
+            DB::raw('SUM(total_jam_lembur) as total_jam'),
+            DB::raw('SUM(total_gaji_lembur) as total_gaji'),
+            DB::raw('SUM(CASE WHEN status_pembayaran = 1 THEN total_gaji_lembur ELSE 0 END) as total_sudah_dibayar'),
+            DB::raw('SUM(CASE WHEN status_pembayaran != 1 THEN total_gaji_lembur ELSE 0 END) as total_belum_dibayar')
+        ])
+        ->when($tanggalMulai, function($query) use ($tanggalMulai) {
+            return $query->where('tgl_lembur', '>=', $tanggalMulai);
+        })
+        ->when($tanggalSelesai, function($query) use ($tanggalSelesai) {
+            return $query->where('tgl_lembur', '<=', $tanggalSelesai);
+        })
+        ->when($statusPembayaran !== null, function($query) use ($statusPembayaran) {
+            return $query->where('status_pembayaran', $statusPembayaran);
+        })
+        ->first();
+    
+    return view('dashboard.gaji-lembur.laporan', compact(
+        'laporanPerPegawai', 
+        'totalKeseluruhan',
+        'tanggalMulai',
+        'tanggalSelesai'
+    ));
 
-        // Ringkasan per pegawai
-        $laporanPerPegawai = GajiLembur::select(
-                'users_id',
-                DB::raw('SUM(total_jam_lembur) as total_jam'),
-                DB::raw('SUM(total_gaji_lembur) as total_gaji'),
-                DB::raw('COUNT(*) as total_hari_lembur'),
-                DB::raw('SUM(CASE WHEN status_pembayaran = 1 THEN total_gaji_lembur ELSE 0 END) as total_sudah_dibayar'),
-                DB::raw('SUM(CASE WHEN status_pembayaran = 0 THEN total_gaji_lembur ELSE 0 END) as total_belum_dibayar')
-            )
-            ->with('user:id,nama_lengkap,jabatan')
-            ->byBulanTahun($bulan, $tahun)
-            ->groupBy('users_id')
-            ->get();
-
-        // Total keseluruhan
-        $totalKeseluruhan = GajiLembur::byBulanTahun($bulan, $tahun)
-            ->select(
-                DB::raw('SUM(total_jam_lembur) as total_jam'),
-                DB::raw('SUM(total_gaji_lembur) as total_gaji'),
-                DB::raw('COUNT(*) as total_record'),
-                DB::raw('SUM(CASE WHEN status_pembayaran = 1 THEN total_gaji_lembur ELSE 0 END) as total_sudah_dibayar'),
-                DB::raw('SUM(CASE WHEN status_pembayaran = 0 THEN total_gaji_lembur ELSE 0 END) as total_belum_dibayar')
-            )
-            ->first();
-
-        return view('dashboard.gaji-lembur.laporan', compact(
-            'laporanPerPegawai',
-            'totalKeseluruhan',
-            'bulan',
-            'tahun'
-        ));
     }
 }

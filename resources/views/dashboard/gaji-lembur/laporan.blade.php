@@ -9,11 +9,13 @@
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4 card-header-theme">
             <div>
                 <h3 class="fw-bold mb-0">📊 Laporan Gaji Lembur</h3>
-                <p class="text-white mb-0">Periode: {{ Carbon\Carbon::create()->month($bulan)->format('F') }} {{ $tahun }}</p>
+                {{-- <p class="text-white mb-0">Periode: {{ $tanggalMulai ? date('d/m/Y', strtotime($tanggalMulai)) : 'Semua' }} - {{ $tanggalSelesai ? date('d/m/Y', strtotime($tanggalSelesai)) : 'Semua' }}</p> --}}
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('gaji-lembur.index') }}" class="btn btn-theme secondary p-2 px-md-3">
-                    <i class="bi bi-arrow-left"></i> Kembali
+
+                <a href="{{ route('gaji-lembur.index', ['tanggal_mulai' => request('tanggal_mulai'), 'tanggal_selesai' => request('tanggal_selesai'), 'status_pembayaran' => request('status_pembayaran')]) }}" 
+                    class="btn btn-theme primary p-2 px-3" style="border-color: #B50000;">
+                    <i class="fas fa-chart-bar"></i> Detail Lembur
                 </a>
                 <button class="btn btn-success p-2 px-md-3" onclick="window.print()">
                     <i class="fas fa-print"></i> Cetak Laporan
@@ -21,33 +23,30 @@
             </div>
         </div>
 
-        {{-- Filter Periode --}}
+        {{-- Filter Section --}}
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
-                <h5 class="card-title">Filter Periode</h5>
+                <h5 class="card-title">Filter Laporan</h5>
                 <form method="GET" class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Bulan</label>
-                        <select name="bulan" class="form-select">
-                            @for($i = 1; $i <= 12; $i++)
-                                <option value="{{ $i }}" {{ $bulan == $i ? 'selected' : '' }}>
-                                    {{ Carbon\Carbon::create()->month($i)->format('F') }}
-                                </option>
-                            @endfor
+                    <div class="col-md-3">
+                        <label class="form-label">Tanggal Mulai</label>
+                        <input type="date" name="tanggal_mulai" class="form-select" value="{{ request('tanggal_mulai') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tanggal Selesai</label>
+                        <input type="date" name="tanggal_selesai" class="form-select" value="{{ request('tanggal_selesai') }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status Pembayaran</label>
+                        <select name="status_pembayaran" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="0" {{ request('status_pembayaran') == '0' ? 'selected' : '' }}>Belum Dibayar</option>
+                            <option value="1" {{ request('status_pembayaran') == '1' ? 'selected' : '' }}>Sudah Dibayar</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Tahun</label>
-                        <select name="tahun" class="form-select">
-                            @for($year = Carbon\Carbon::now()->year; $year >= Carbon\Carbon::now()->year - 3; $year--)
-                                <option value="{{ $year }}" {{ $tahun == $year ? 'selected' : '' }}>
-                                    {{ $year }}
-                                </option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-theme info p-2 px-md-3">Tampilkan Laporan</button>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-theme info p-2 px-md-3 me-2">Tampilkan Laporan</button>
+                        <a href="{{ route('gaji-lembur.index') }}" class="btn btn-theme primary p-2 px-3" style="border-color: #B50000;">Reset</a>
                     </div>
                 </form>
             </div>
@@ -103,15 +102,16 @@
                     <table class="table table-striped table-borderless mb-0">
                         <thead style="background-color:#FFE5E5">
                             <tr>
-                                <th>No</th>
-                                <th>Nama Pegawai</th>
-                                <th>Jabatan</th>
-                                <th>Total Hari Lembur</th>
-                                <th>Total Jam Lembur</th>
-                                <th>Total Gaji Lembur</th>
-                                <th>Sudah Dibayar</th>
-                                <th>Belum Dibayar</th>
-                                <th>Persentase Pembayaran</th>
+                                <th style="background-color: #ca414e; color: white;">No</th>
+                                <th style="background-color: #ca414e; color: white;">Nama Pegawai</th>
+                                <th style="background-color: #ca414e; color: white;">Jabatan</th>
+                                <th style="background-color: #ca414e; color: white;">Total Hari Lembur</th>
+                                <th style="background-color: #ca414e; color: white;">Total Jam Lembur</th>
+                                <th style="background-color: #ca414e; color: white;">Total Gaji Lembur</th>
+                                <th style="background-color: #ca414e; color: white;">Sudah Dibayar</th>
+                                <th style="background-color: #ca414e; color: white;">Belum Dibayar</th>
+                                <th style="background-color: #ca414e; color: white;">Persentase Pembayaran</th>
+                                <th style="background-color: #ca414e; color: white;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -119,9 +119,9 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>
-                                        <strong>{{ $laporan->user->nama_lengkap ?? 'N/A' }}</strong>
+                                        <strong>{{ $laporan->nama_lengkap ?? 'N/A' }}</strong>
                                     </td>
-                                    <td>{{ $laporan->user->jabatan ?? '—' }}</td>
+                                    <td>{{ $laporan->jabatan ?? '—' }}</td>
                                     <td class="text-center">{{ $laporan->total_hari_lembur }}</td>
                                     <td class="text-center">{{ number_format($laporan->total_jam, 1) }} jam</td>
                                     <td class="text-end">
@@ -149,10 +149,16 @@
                                             </div>
                                         </div>
                                     </td>
+                                    <td class="align-middle">
+                                        <a href="{{ route('gaji-lembur.detail-pegawai', ['user_id' => $laporan->user_id]) }}"
+                                        class="btn btn-theme info btn-sm p-2 px-md-3">
+                                            <i class="fas fa-eye"></i> Detail
+                                        </a>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="text-center py-4">
+                                    <td colspan="10" class="text-center py-4">
                                         Tidak ada data untuk periode ini
                                     </td>
                                 </tr>
@@ -184,6 +190,7 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td></td>
                             </tr>
                         </tfoot>
                         @endif
@@ -194,23 +201,15 @@
 
         {{-- Chart Section --}}
         <div class="row mt-4">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header">
                         <h5 class="mb-0">Status Pembayaran</h5>
                     </div>
-                    <div class="card-body">
-                        <canvas id="paymentStatusChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header">
-                        <h5 class="mb-0">Top 5 Pegawai Lembur Terbanyak</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="topEmployeesChart" width="400" height="200"></canvas>
+                    <div class="card-body d-flex justify-content-center">
+                        <div style="width: 100%; max-width: 400px;">
+                            <canvas id="paymentStatusChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -252,40 +251,7 @@ new Chart(paymentStatusCtx, {
     }
 });
 
-// Top Employees Chart
-const topEmployeesCtx = document.getElementById('topEmployeesChart').getContext('2d');
-const topEmployees = @json($laporanPerPegawai->take(5));
 
-new Chart(topEmployeesCtx, {
-    type: 'bar',
-    data: {
-        labels: topEmployees.map(emp => emp.user.nama_lengkap?.split(' ')[0] || 'N/A'),
-        datasets: [{
-            label: 'Jam Lembur',
-            data: topEmployees.map(emp => emp.total_jam),
-            backgroundColor: '#007bff',
-            borderRadius: 4
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return value + ' jam';
-                    }
-                }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
-            }
-        }
-    }
-});
 </script>
 
 {{-- Print Styles --}}

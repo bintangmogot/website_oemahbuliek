@@ -66,7 +66,7 @@ class UsersTableSeeder extends Seeder
         }
 
         // (6) Bulk create dengan Factory—cukup random-kan pengaturan_gaji_id
-        User::factory(50)
+        User::factory(20)
             ->make()
             ->each(function ($user) use ($gajiIds) {
                 $user->pengaturan_gaji_id = $gajiIds[array_rand($gajiIds)];

@@ -23,35 +23,42 @@
                     <div class="card card-body">
                         <form method="GET" action="{{ route('admin.presensi.index') }}">
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Status Approval</label>
                                     <select name="status_approval" class="form-control">
                                         <option value="">Semua Status</option>
-                                        <option value="0" {{ request('status_approval') == '0' ? 'selected' : '' }}>Pending</option>
-                                        <option value="1" {{ request('status_approval') == '1' ? 'selected' : '' }}>Disetujui</option>
-                                        <option value="2" {{ request('status_approval') == '2' ? 'selected' : '' }}>Ditolak</option>
+                                        <option value="0" {{ request('status_approval') === '0' ? 'selected' : '' }}>Pending</option>
+                                        <option value="1" {{ request('status_approval') === '1' ? 'selected' : '' }}>Disetujui</option>
+                                        <option value="2" {{ request('status_approval') === '2' ? 'selected' : '' }}>Ditolak</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Tanggal</label>
-                                    <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+                                <div class="col-md-2">
+                                    <label class="form-label">Dari Tanggal</label>
+                                    <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <label class="form-label">Sampai Tanggal</label>
+                                    <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+                                </div>
+                                <div class="col-md-2">
                                     <label class="form-label">Pegawai</label>
                                     <select name="user_id" class="form-control">
                                         <option value="">Semua Pegawai</option>
-                                        @foreach($users ?? [] as $user)
-                                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->nama_lengkap }}
-                                            </option>
-                                        @endforeach
+                                        @if(isset($users) && $users->count() > 0)
+                                            @foreach($users as $user)
+                                                <option value="{{ $user->id }}" 
+                                                    {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                                    {{ $user->nama_lengkap }}
+                                                </option>
+                                            @endforeach
+                                        @endif
                                     </select>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-theme primary me-2">
+                                <div class="col-md-4 d-flex align-items-end mt-2">
+                                    <button type="submit" class="btn btn-theme info p-2 px-md-3 me-2">
                                         <i class="fas fa-search"></i> Filter
                                     </button>
-                                    <a href="{{ route('admin.presensi.index') }}" class="btn btn-theme secondary">
+                                    <a href="{{ route('admin.presensi.index') }}" class="btn btn-theme primary p-2 px-3" style="border-color: #B50000;">
                                         <i class="fas fa-times"></i> Reset
                                     </a>
                                 </div>
@@ -95,7 +102,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h5>{{ $presensi->where('status_approval', 1)->count() }}</h5>
+                                            <h5>{{ $approvedCount ?? 0 }}</h5>
                                             <small>Disetujui</small>
                                         </div>
                                         <i class="fas fa-check fa-2x"></i>
@@ -108,7 +115,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h5>{{ $presensi->where('status_lembur', 2)->count() }}</h5>
+                                            <h5>{{ $lemburApprovedCount ?? 0 }}</h5>
                                             <small>Lembur Disetujui</small>
                                         </div>
                                         <i class="fas fa-clock fa-2x"></i>
@@ -121,7 +128,7 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between">
                                         <div>
-                                            <h5>{{ $presensi->count() }}</h5>
+                                            <h5>{{ $totalPresensi ?? 0 }}</h5>
                                             <small>Total Presensi</small>
                                         </div>
                                         <i class="fas fa-users fa-2x"></i>
@@ -131,24 +138,29 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                    <div class="table-responsive shadow-md rounded-3">
+                        <table class="table table-borderless table-striped table-hover rounded-3 shadow-sm">
                             <thead>
-                                <tr style="background-color:#FFD9D9">
-                                    <th>No</th>
-                                    <th>Nama Pegawai</th>
-                                    <th>Tanggal</th>
-                                    <th>Shift</th>
-                                    <th>Jam Masuk</th>
-                                    <th>Jam Keluar</th>
-                                    <th>Status Kehadiran</th>
-                                    <th>Status Lembur</th>
-                                    <th>Status Approval</th>
-                                    <th>Aksi</th>
+                                <tr>
+                                    <th style="background-color: #ca414e; color: white;">No</th>
+                                    <th style="background-color: #ca414e; color: white;">Nama Pegawai</th>
+                                    <th style="background-color: #ca414e; color: white;">Tanggal</th>
+                                    <th style="background-color: #ca414e; color: white;">Shift</th>
+                                    <th style="background-color: #ca414e; color: white;">Jam Masuk</th>
+                                    <th style="background-color: #ca414e; color: white;">Jam Keluar</th>
+                                    <th style="background-color: #ca414e; color: white;">Jam Kerja Efektif</th>
+                                    <th style="background-color: #ca414e; color: white;">Status Kehadiran</th>
+                                    <th style="background-color: #ca414e; color: white;">Status Lembur</th>
+                                    <th style="background-color: #ca414e; color: white;">Status Approval</th>
+                                    <th style="background-color: #ca414e; color: white;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($presensi as $index => $item)
+                                @php
+                                    $hari = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+                                     $hariInggris = $item->tgl_presensi->format('l');
+                                @endphp
                                 <tr>
                                     <td>{{ $presensi->firstItem() + $index }}</td>
                                     <td>
@@ -172,7 +184,7 @@
                                     </td>
                                     <td>
                                         {{ $item->tgl_presensi->format('d/m/Y') }}
-                                        <br><small class="text-muted">{{ $item->tgl_presensi->format('l') }}</small>
+                                        <br><small class="text-muted">{{ $hari[$hariInggris] }}</small>
                                     </td>
                                     <td>
                                         @if($item->jadwalShift && $item->jadwalShift->shift)
@@ -215,6 +227,35 @@
                                         @endif
                                     </td>
                                     <td>
+                                    @php
+                                        $jamKerjaEfektif = $item->calculateEffectiveWorkHours();
+                                        $jamKerjaFormatted = $item->jam_kerja_efektif_formatted;
+                                        $jamDecimal = $jamKerjaEfektif / 60;
+                                    @endphp
+                                    
+                                    @if($jamKerjaEfektif > 0)
+                                        <div class="text-center">
+                                            <span class="fw-bold text-primary">{{ $jamKerjaFormatted }}</span>
+                                            <br>
+                                            <small class="text-muted">({{ number_format($jamDecimal, 2) }} jam)</small>
+                                            
+                                            @if($jamDecimal >= 7)
+                                                <br><small class="badge bg-success">Full Time</small>
+                                            @elseif($jamDecimal >= 4)
+                                                <br><small class="badge bg-warning">Lebih Awal</small>
+                                            @else
+                                                <br><small class="badge bg-danger">Kurang</small>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="text-center">
+                                            <span class="text-muted">-</span>
+                                            <br>
+                                            <small class="badge bg-secondary">No Data</small>
+                                        </div>
+                                    @endif
+                                </td>
+                                    <td>
                                         @switch($item->status_kehadiran)
                                             @case(0)
                                                 <span class="badge bg-danger">Tidak Hadir</span>
@@ -241,6 +282,9 @@
                                             @case(2)
                                                 <span class="badge bg-success">Lembur (Disetujui)</span>
                                                 @break
+                                            @case(3)
+                                                <span class="badge bg-info">Shift Lembur (Pending)</span>
+                                                @break
                                         @endswitch
                                     </td>
                                     <td>
@@ -264,7 +308,7 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             
-                                            @if($item->status_approval == 0)
+                                            @if($item->status_approval == 0 || $item->status_approval == 2)
                                                 <button class="btn btn-outline-success btn-sm" 
                                                         title="Setujui"
                                                         data-bs-toggle="modal" 

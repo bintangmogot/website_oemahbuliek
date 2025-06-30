@@ -170,12 +170,13 @@
                                                 0 => 'bg-secondary',   // No Overtime
                                                 1 => 'bg-warning',     // Overtime Pending
                                                 2 => 'bg-success',     // Overtime Approved
+                                                3 => 'bg-info',        // Shift Lembur (pending)
                                                 default => 'bg-secondary'
                                             };
                                         @endphp
-                                        <span class="badge {{ $lemburClass }}">
-                                            {{ $presensi->status_lembur_label }}
-                                        </span>
+                                        <span class="badge {{ $presensi->status_lembur_badge }}">
+                                        {{ $presensi->status_lembur_label }}
+                                    </span>
                                     </td>
                                     <td class="align-middle">
                                         @php

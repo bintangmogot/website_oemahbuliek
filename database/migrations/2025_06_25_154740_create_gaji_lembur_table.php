@@ -29,13 +29,16 @@ return new class extends Migration
             $table->date('tgl_lembur');
             $table->decimal('total_jam_lembur', 8, 2)->default(0)->comment('Total jam lembur dalam desimal (misal: 1.5 = 1 jam 30 menit)');
             $table->integer('total_gaji_lembur')->default(0)->comment('Total gaji lembur dalam rupiah');
+
+            $table->enum('tipe_lembur', ['shift_lembur', 'overtime'])->nullable();
             
             // Snapshot
             $table->integer('rate_lembur_per_jam')->default(0)->comment('Snapshot rate lembur per jam saat transaksi');
 
             // Payment Info
             $table->date('tgl_bayar')->nullable();
-            $table->tinyInteger('status_pembayaran')->default(0)->comment('0=Unpaid,1=Paid,2=Partial');
+            $table->tinyInteger('status_pembayaran')->default(0)->comment('0=Unpaid,1=Paid');
+            $table->text('keterangan_lembur')->nullable();
             
             // Timestamps
             $table->timestamps();

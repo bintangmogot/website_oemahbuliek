@@ -11,6 +11,7 @@ use App\Http\Controllers\JadwalShiftController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PengaturanGajiController;
 use App\Http\Controllers\GajiLemburController;
+use App\Http\Controllers\GajiPokokController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -136,6 +137,7 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
     Route::middleware('role:admin')->name('gaji-lembur.')->group(function () {
         Route::post('gaji-lembur/batch-payment', [GajiLemburController::class, 'batchUpdatePayment'])->name('batch-payment');
         Route::get('gaji-lembur/', [GajiLemburController::class, 'index'])->name('index');
+        Route::get('/detail-pegawai/{user_id}', [GajiLemburController::class, 'detailPegawai'])->name('detail-pegawai');
         Route::get('gaji-lembur/laporan', [GajiLemburController::class, 'laporan'])->name('laporan');
         Route::put('dashboard/gaji-lembur/{gajiLembur}/payment', [GajiLemburController::class, 'updatePayment'])->name('update-payment');
 
@@ -149,7 +151,45 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
     // Shared routes
     Route::get('gaji-lembur/{gajiLembur}', [GajiLemburController::class, 'show'])->name('gaji-lembur.show');
 
-    
+
+
+// ————— TABEL GAJI POKOK —————
+
+    // ============ ADMIN ROUTES ============
+    Route::middleware('role:admin')->prefix('gaji-pokok')->name('admin.gaji-pokok.')->group(function () {
+        // List semua gaji pokok dengan filter
+        Route::get('/', [GajiPokokController::class, 'adminIndex'])->name('index');
+        
+        // Detail gaji pokok per karyawan
+        Route::get('/user/{user}', [GajiPokokController::class, 'adminShow'])->name('show');
+        
+        // Ringkasan pembayaran
+        Route::get('/summary', [GajiPokokController::class, 'adminSummary'])->name('summary');
+        
+        
+        // Update status pembayaran
+        Route::post('/payment', [GajiPokokController::class, 'updatePembayaran'])->name('update-pembayaran');
+        
+        Route::post('/generate-from-realtime', [GajiPokokController::class, 'generateFromRealtime'])->name('generate-from-realtime');
+    // Detail gaji pokok realtime (belum tersimpan)
+    Route::get('/realtime/detail', [GajiPokokController::class, 'adminDetailRealtime'])
+        ->name('detail-realtime');
+        
+            Route::post('/preview', [GajiPokokController::class, 'previewGaji'])
+        ->name('preview');
+
+        Route::get('/generated', [GajiPokokController::class, 'adminGenerated'])->name('generated');
+
+    });
+
+    // ============ PEGAWAI ROUTES ============
+    Route::middleware('role:pegawai')->prefix('gaji-pokok')->name('pegawai.gaji-pokok.')->group(function () {
+        // List gaji pokok sendiri
+        Route::get('/saya', [GajiPokokController::class, 'pegawaiIndex'])->name('index');
+        
+        // Detail gaji pokok sendiri
+        Route::get('/detail/{gajiPokok}', [GajiPokokController::class, 'pegawaiDetail'])->name('detail');
+    });
 
 });
 

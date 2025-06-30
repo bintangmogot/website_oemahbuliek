@@ -27,9 +27,10 @@ class UserFactory extends Factory
             'no_hp'         => $noHp,
             'alamat'        => $this->faker->address(),
             'tgl_masuk'     => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
+            'tgl_resign'    => null,
             'foto_profil'   => null,
             'remember_token'=> Str::random(10),
-            'status'        => $this->faker->randomElement([1, 1, 1, 1, 0]), // 80% aktif, 20% non-aktif
+            'status'        => $this->faker->randomElement([1, 1, 1, 1, 0]), // 80% aktif, 20% resign
         ];
     }
     // di UserFactory

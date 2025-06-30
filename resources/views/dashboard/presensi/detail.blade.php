@@ -184,7 +184,7 @@
                                 <i class="fas fa-clock"></i> Durasi Kerja
                             </h4>
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="text-center p-3 bg-light rounded">
                                         <h4 class="text-primary mb-1">
                                             @php
@@ -197,13 +197,26 @@
                                         <small class="text-muted">Total Kerja</small>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                    <div class="col-md-3">
+                                    <div class="text-center p-3 bg-light rounded">
+                                        <h4 class="text-primary mb-1">
+                                    @php
+                                        $jamKerjaEfektif = $presensi->calculateEffectiveWorkHours();
+                                        $jamKerjaFormatted = $presensi->jam_kerja_efektif_formatted;
+                                        $jamDecimal = $jamKerjaEfektif / 60;
+                                    @endphp
+                                    {{ $jamKerjaFormatted }}
+                                    </h4>
+                                    <small class="text-muted">Jam Kerja Efektif</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
                                     <div class="text-center p-3 bg-light rounded">
                                         <h4 class="text-warning mb-1">{{ $presensi->menit_terlambat }}m</h4>
                                         <small class="text-muted">Keterlambatan</small>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="text-center p-3 bg-light rounded">
                                         <h4 class="text-info mb-1">
                                             @php

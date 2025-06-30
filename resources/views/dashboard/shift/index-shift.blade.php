@@ -10,10 +10,12 @@
     destroyRoute="admin.shift.destroy"
     :columns="[
       ['label'=>'Nama Shift',      'field'=>'nama_shift'],
+      ['label'=>'Jenis Shift',     'field'=>'jenis_shift_label'],
       ['label'=>'Mulai',           'field'=>'jam_mulai', 'format'=>'H:i'],
       ['label'=>'Selesai',         'field'=>'jam_selesai', 'format'=>'H:i'],
       ['label'=>'Toleransi (mnt)', 'field'=>'toleransi_terlambat'],
       ['label'=>'Batas Lembur (mnt)','field'=>'batas_lembur_min'],
+      ['label'=>'Status',          'field'=>'status_label'],
     ]"
     :items="$shifts"
     :showActions="auth()->user()->role === 'admin'"

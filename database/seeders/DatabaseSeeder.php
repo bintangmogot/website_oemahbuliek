@@ -16,8 +16,9 @@ class DatabaseSeeder extends Seeder
             UsersTableSeeder::class,
             ShiftSeeder::class,
             JadwalShiftSeeder::class,
-            PresensiSeeder::class,
-            GajiLemburSeeder::class, 
+            // PresensiSeeder::class,
+            // GajiLemburSeeder::class, 
+            // GajiPokokSeeder::class,
 
         ]);
 
@@ -27,6 +28,7 @@ class DatabaseSeeder extends Seeder
         $this->command->info('   Users: ' . \App\Models\User::count());
         $this->command->info('   Presensi: ' . \App\Models\Presensi::count());
         $this->command->info('   Gaji Lembur: ' . \App\Models\GajiLembur::count());
+        $this->command->info('   Gaji Pokok: ' . \App\Models\GajiPokok::count());
         $this->command->info('   Jadwal: ' . \App\Models\JadwalShift::count());
         $this->command->info('   Pengaturan Gaji: ' . PengaturanGaji::count());
         $this->command->info('   Shift: ' . \App\Models\Shift::count());

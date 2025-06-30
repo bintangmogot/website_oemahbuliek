@@ -51,7 +51,7 @@ class JadwalShiftSeeder extends Seeder
 
         // Contoh: buat 10 periode jadwal shift secara acak
         // Pastikan factory JadwalShift menggunakan kolom yang benar
-        JadwalShift::factory()->count(50)->create();
+        JadwalShift::factory()->count(20)->create();
 
         $this->command->info('Jadwal Shift seeder completed: ' . JadwalShift::count() . ' jadwal created.');
     }

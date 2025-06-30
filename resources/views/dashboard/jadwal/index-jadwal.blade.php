@@ -44,19 +44,19 @@
                     @endif
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-bordered table-striped table-hover">
                             <thead>
                                 <tr style="background-color:#FFD9D9">
-                                    <th>No</th>
+                                    <th style="background-color: #ca414e; color: white;">No</th>
                                     @if(auth()->user()->role === 'admin')
-                                        <th>Nama Pegawai</th>
+                                        <th style="background-color: #ca414e; color: white;">Nama Pegawai</th>
                                     @endif
-                                    <th>Shift</th>
-                                    <th>Tanggal</th>
-                                    <th>Jam Kerja</th>
-                                    <th>Status</th>
+                                    <th style="background-color: #ca414e; color: white;">Shift</th>
+                                    <th style="background-color: #ca414e; color: white;">Tanggal</th>
+                                    <th style="background-color: #ca414e; color: white;">Jam Kerja</th>
+                                    <th style="background-color: #ca414e; color: white;">Status</th>
                                     @if(auth()->user()->role === 'admin')
-                                    <th>Aksi</th>
+                                    <th style="background-color: #ca414e; color: white;">Aksi</th>
                                     @endif
                                 </tr>
                             </thead>

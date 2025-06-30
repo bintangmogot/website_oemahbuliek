@@ -1,5 +1,5 @@
 @php
-  $isEdit = isset($shift) && $shift->id_shift;
+  $isEdit = isset($shift) && $shift->id;
 @endphp
 
 @isset($shift)
@@ -16,6 +16,24 @@
          class="form-control"
          value="{{ old('nama_shift', $shift->nama_shift ?? '') }}">
   @error('nama_shift') <small class="text-danger">{{ $message }}</small> @enderror
+</div>
+
+{{-- Jenis Shift --}}
+<div class="mb-3">
+  <label for="is_shift_lembur" class="form-label">Jenis Shift</label>
+  <select name="is_shift_lembur" 
+          id="is_shift_lembur" 
+          class="form-select"
+          required>
+    <option value="">Pilih Jenis Shift</option>
+    <option value="0" {{ old('is_shift_lembur', $shift->is_shift_lembur ?? '') == '0' ? 'selected' : '' }}>
+      Normal
+    </option>
+    <option value="1" {{ old('is_shift_lembur', $shift->is_shift_lembur ?? '') == '1' ? 'selected' : '' }}>
+      Lembur
+    </option>
+  </select>
+  @error('is_shift_lembur') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
 {{-- Jam Mulai --}}
@@ -65,6 +83,19 @@
   @error('batas_lembur_min') <small class="text-danger">{{ $message }}</small> @enderror
 </div>
 
-{{-- <button class="btn btn-{{ $isEdit ? 'primary' : 'success' }}">
-  {{ $isEdit ? 'Simpan Perubahan' : 'Tambah Shift' }}
-</button> --}}
+{{-- Status --}}
+<div class="mb-3">
+  <label for="status" class="form-label">Status</label>
+  <select name="status" 
+          id="status" 
+          class="form-select"
+          required>
+    <option value="1" {{ old('status', $shift->status ?? 1) == 1 ? 'selected' : '' }}>
+      Aktif
+    </option>
+    <option value="0" {{ old('status', $shift->status ?? 1) == 0 ? 'selected' : '' }}>
+      Tidak Aktif
+    </option>
+  </select>
+  @error('status') <small class="text-danger">{{ $message }}</small> @enderror
+</div>

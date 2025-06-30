@@ -123,7 +123,7 @@
                             @if($presensi->menit_terlambat > 0)
                             <div class="col-12 mb-3">
                                 <strong>Keterlambatan:</strong>
-                                <span class="text-danger">{{ $presensi->menit_terlambat }} menit</span>
+                                <span class="text-danger fw-bold">{{ $presensi->menit_terlambat }} menit</span>
                             </div>
                             @endif
                             @if($presensi->jam_keluar)
@@ -131,16 +131,19 @@
                                     $overtime = $presensi->calculateOvertime();
                                 @endphp
                                 @if($overtime > 0)
-                                    <span class="badge bg-info ml-2">
-                                        Lembur {{ $overtime }} menit
+                                <div class="col-12 mb-3">
+                                    <strong>Lembur:</strong>
+                                    <span class="text-info ml-2 fw-bold">
+                                        {{ $overtime }} menit
                                     </span>
+                                </div>
                                 @endif
                             @endif
 
                             @if($presensi->catatan_admin)
                             <div class="col-12">
                                 <strong>Catatan Admin:</strong>
-                                <p class="text-muted">{{ $presensi->catatan_admin }}</p>
+                                <span class="text-muted">{{ $presensi->catatan_admin }}</span>
                             </div>
                             @endif
                         </div>
@@ -760,8 +763,9 @@ if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     const hasLateWarning = warnings.some(w => w.type === 'late');
     const hasEarlyCheckout = warnings.some(w => w.type === 'early_checkout');
     const hasOvertime = warnings.some(w => w.type === 'overtime');
+    const hasShiftLemburOvertime = warnings.some(w => w.type === 'shift_lembur_overtime');
     
-    if (hasLateWarning || hasEarlyCheckout || hasOvertime) {
+    if (hasLateWarning || hasEarlyCheckout || hasOvertime || hasShiftLemburOvertime) {
         additionalInfo = `
             <div class="alert alert-light border">
                 <small class="text-muted">
@@ -770,6 +774,7 @@ if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     • Presensi Anda telah dicatat dan akan ditinjau oleh admin<br>
                     • Anda akan mendapat notifikasi hasil review<br>
                     • ${hasOvertime ? 'Lembur hanya dihitung jika disetujui admin<br>' : ''}
+                    • ${hasShiftLemburOvertime ? 'Overtime pada shift lembur tetap dihitung sebagai shift lembur<br>' : ''}
                     • ${hasLateWarning || hasEarlyCheckout ? 'Keterlambatan/pulang awal dapat mempengaruhi perhitungan gaji' : ''}
                 </small>
             </div>

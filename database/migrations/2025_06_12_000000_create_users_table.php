@@ -23,11 +23,12 @@ return new class extends Migration
             $table->string('nama_lengkap');
             $table->string('jabatan', 50);
             $table->date('tgl_masuk');
+            $table->date('tgl_resign')->nullable();
             $table->string('no_hp', 15)->unique();
             $table->text('alamat')->nullable();
             $table->string('foto_profil')->nullable();
 
-            $table->tinyInteger('status')->default(1)->comment('0=Inactive, 1=Active, 2=Suspended');
+            $table->tinyInteger('status')->default(1)->comment('0=Resigned, 1=Active');
             
             $table->timestamps();
 

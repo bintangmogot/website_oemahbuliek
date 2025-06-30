@@ -11,6 +11,7 @@ class CreateShiftsTable extends Migration
         Schema::create('shift', function (Blueprint $table) {
             $table->id();
             $table->string('nama_shift', 50)->unique();
+            $table->tinyInteger('is_shift_lembur')->default(0)->comment('0=normal, 1=lembur');
             $table->time('jam_mulai');
             $table->time('jam_selesai');
             $table->unsignedInteger('toleransi_terlambat'); // dalam menit

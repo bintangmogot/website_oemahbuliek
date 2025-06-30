@@ -30,4 +30,5 @@ class PengaturanGaji extends Model
     {
         return $this->hasMany(User::class, 'pengaturan_gaji_id', 'id');
     }
+
 }

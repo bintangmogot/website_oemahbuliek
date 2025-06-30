@@ -15,10 +15,6 @@ return new class extends Migration
             $table->id();
             
             // Foreign keys
-            // $table->foreignId('gaji_pokok_id')->nullable()
-            //       ->constrained('gaji_pokok')
-            //       ->onDelete('set null')
-            //       ->onUpdate('cascade');
                   
             $table->foreignId('users_id')
                   ->constrained('users')

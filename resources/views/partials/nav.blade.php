@@ -100,10 +100,15 @@
             <span>Presensi Pegawai</span>
           </a>
 
-          <a href="{{ route('gaji-lembur.index') }}" class="menu-item {{ request()->is('dashboard/gaji-lembur*') ? 'active' : '' }}" >
+          <a href="{{ route('gaji-lembur.laporan') }}" class="menu-item {{ request()->is('dashboard/gaji-lembur*') ? 'active' : '' }}" >
           <i class="bi bi-person-workspace"></i>
             <span>Lembur Pegawai</span>
           </a>
+
+          <a href="{{ route('admin.gaji-pokok.index') }}" class="menu-item {{ request()->is('dashboard/gaji-pokok*') ? 'active' : '' }}" >
+            <i class="fas fa-user-tie"></i>
+            <span>Gaji Pegawai</span>
+            </a>
 
           <a href="{{ route('user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
           <i class="fas fa-user-tie"></i>
@@ -124,6 +129,7 @@
             <i class="fas fa-box"></i>
             <span>Manajemen Inventaris</span>
           </a>
+
         {{-- Menu untuk Pegawai --}}
         @else
           <a href="/dashboard" class="menu-item {{ request()->is('dashboard') ? 'active' : '' }}">
@@ -143,6 +149,11 @@
           <i class="bi bi-person-workspace"></i>
             <span>Laporan Lembur</span>
           </a>
+
+          <a href="{{ route('pegawai.gaji-pokok.index') }}" class="menu-item {{ request()->is('dashboard/gaji-pokok*') ? 'active' : '' }}" >
+            <i class="fas fa-user-tie"></i>
+            <span>Laporan Gaji Pokok</span>
+            </a>
           
           <a href="{{ route('pegawai.presensi.index') }}" class="menu-item {{ request()->is('dashboard/presensi*') ? 'active' : '' }}">
             <i class="fas fa-clock"></i>

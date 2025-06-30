@@ -16,7 +16,7 @@
 <x-session-status/>
 
 <div class="container py-5">
-    {{-- Header: Title, Export, Create --}}
+    {{-- Header: Title, Create --}}
     <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white" style="min-height: 50vh">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-3 card-header-theme">
             <h3 class="fw-bold mb-0">{{ $title ?? 'Daftar Data' }}</h3>
@@ -48,13 +48,13 @@
             {{-- Table with zebra stripes, borderless --}}
             <table class="table table-striped table-borderless mb-0 rounded-3" >
                 {{-- Table header --}}
-                <thead style="background-color:#FFD9D9">
+                <thead>
                     <tr>
                         @foreach($columns as $column)
-                            <th>{{ $column['label'] }}</th>
+                            <th style="background-color: #ca414e; color: white;">{{ $column['label'] }}</th>
                         @endforeach
                         @if($showActions)
-                            <th>Aksi</th>
+                            <th style="background-color: #ca414e; color: white;">Aksi</th>
                         @endif
                     </tr>
                 </thead>

@@ -122,7 +122,7 @@
                                     <strong class="text-success">{{ $item->formatted_total_gaji_lembur }}</strong>
                                 </td>
                                 <td class="align-middle">
-                                    <span class="badge bg-info {{ $item->status_pembayaran_badge }}">
+                                    <span class="badge {{ $item->status_pembayaran_badge }}">
                                         {{ $item->status_pembayaran_label }}
                                     </span>
                                 </td>

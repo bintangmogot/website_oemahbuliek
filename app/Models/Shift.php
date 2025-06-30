@@ -20,6 +20,7 @@ class Shift extends Model
      */
         protected $fillable = [
         'nama_shift',
+        'is_shift_lembur',
         'jam_mulai',
         'jam_selesai',
         'toleransi_terlambat',
@@ -58,4 +59,49 @@ class Shift extends Model
     {
         return $this->status === 1;
     }
+
+        /**
+     * Scope untuk mengambil hanya shift normal (bukan lembur)
+     */
+    public function scopeNormal($query)
+    {
+        return $query->where('is_shift_lembur', 0);
+    }
+
+    /**
+     * Scope untuk mengambil hanya shift lembur
+     */
+    public function scopeLembur($query)
+    {
+        return $query->where('is_shift_lembur', 1);
+    }
+
+    public function isNormal()
+    {
+        return $this->is_shift_lembur == 0;
+    }
+
+    public function isLembur()
+    {
+        return $this->is_shift_lembur == 1;
+    }
+
+
+        /**
+     * Get the status label.
+     */
+    public function getStatusLabelAttribute()
+    {
+        return $this->status == 1 ? 'Aktif' : 'Nonaktif';
+    }
+
+    /**
+     * Get the shift type label.
+     */
+    public function getJenisShiftLabelAttribute()
+    {
+        return $this->is_shift_lembur == 1 ? 'Shift Lembur' : 'Shift Normal';
+    }
 }
+
+

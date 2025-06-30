@@ -31,7 +31,7 @@ class User extends Authenticatable
     protected $fillable = [
         'pengaturan_gaji_id',
         'email','password','role',
-        'nama_lengkap','jabatan','tgl_masuk','no_hp','alamat','foto_profil', 'status'
+        'nama_lengkap','jabatan','tgl_masuk', 'tgl_resign','no_hp','alamat','foto_profil', 'status'
     ];
     
     /**
@@ -51,9 +51,21 @@ class User extends Authenticatable
      */
     protected $casts = [
         'tgl_masuk' => 'date',
+        'tgl_resign' => 'date',
         'status' => 'integer',
         'pengaturan_gaji_id' => 'integer',
     ];
+
+        // Definisikan constants untuk setiap status
+    const STATUS_RESIGNED  = 0;
+    const STATUS_ACTIVE    = 1;
+
+    // Mapping integer ke label
+    const STATUS_LABELS = [
+        self::STATUS_RESIGNED  => 'Resign',
+        self::STATUS_ACTIVE    => 'Aktif',
+    ];
+
 
     // Cek role
 public static function getIsAdminAttribute()
@@ -98,18 +110,24 @@ public static function getIsAdminAttribute()
 
         public function presensi()
     {
-        return $this->hasMany(Presensi::class, 'users_id', 'id');
+        return $this->hasMany(Presensi::class, 'users_id', 'id')
+        ->orderBy('tgl_presensi', 'desc');
     }
 
-    // public function gajiPokok()
-    // {
-    //     return $this->hasMany(GajiPokok::class, 'id_users', 'id_users');
-    // }
+      /**
+     * Satu user bisa punya banyak gaji pokok (per periode)
+     */
+    public function gajiPokok()
+    {
+        return $this->hasMany(GajiPokok::class, 'users_id')
+                    ->orderBy('periode_awal', 'desc');
 
-    // public function gajiLembur()
-    // {
-    //     return $this->hasMany(GajiLembur::class, 'id_users', 'id_users');
-    // }
+    }
+
+    public function gajiLembur()
+    {
+        return $this->hasMany(GajiLembur::class, 'users_id');
+    }
 
     // public function pegawaiJadwal()
     // {
@@ -137,21 +155,26 @@ public static function getIsAdminAttribute()
     // }
 
 
-    public function isActive(): bool
-    {
-        return $this->status === UserStatus::ACTIVE;
-    }
+
+    // STATUS USERS
+
+    // Accessor untuk mendapatkan label berdasarkan status
 
     public function getStatusLabelAttribute(): string
     {
-        return $this->status->label();
+        return self::STATUS_LABELS[$this->status] ?? 'Unknown';
     }
 
-    // Scopes
-    public function scopeActive($query)
+    // Static helper untuk form atau validasi
+
+  public function scopeActive($query)
     {
-        return $query->where('status', UserStatus::ACTIVE);
+        return $query->where('status', self::STATUS_ACTIVE);
     }
+
+    public function scopeResigned($query)
+    {
+        return $query->where('status', self::STATUS_RESIGNED);
+    }
+
 }
-
-
