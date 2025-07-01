@@ -38,7 +38,7 @@ return new class extends Migration
             
             // Status fields
             $table->tinyInteger('status_kehadiran')->default(0)->comment('0=Absent,1=Present,2=Late,3=Half Day');
-            $table->tinyInteger('status_lembur')->default(0)->comment('0=No Overtime,1=Overtime,2=Overtime Approved');
+            $table->tinyInteger('status_lembur')->default(0)->comment('0=No Overtime,1=Overtime,2=Overtime Approved,3=Shift Lembur,4=Shift Lembur Overtime');
             $table->tinyInteger('status_approval')->default(0)->comment('0=Pending,1=Approved,2=Rejected');
             
             // Admin notes

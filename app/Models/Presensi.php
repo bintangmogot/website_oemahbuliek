@@ -52,6 +52,8 @@ class Presensi extends Model
     const STATUS_LEMBUR_OVERTIME = 1;
     const STATUS_LEMBUR_APPROVED = 2;
     public const STATUS_LEMBUR_SHIFT = 3;     // Untuk shift lembur
+    const STATUS_LEMBUR_SHIFT_OVERTIME = 4; // Shift lembur yang memiliki jam overtime
+
 
     const STATUS_APPROVAL_PENDING = 0;
     const STATUS_APPROVAL_APPROVED = 1;
@@ -90,36 +92,45 @@ class Presensi extends Model
 
 // Method untuk menghitung jam kerja efektif (check in sampai check out dalam batas shift)
 public function calculateEffectiveWorkHours(): int
-{
-    if (!$this->jam_masuk || !$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
+    {
+        // Gunakan jam keluar dari properti model, yang sudah di-set dari controller.
+        if (!$this->jam_masuk || !$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
+            return 0;
+        }
+
+        $shift = $this->jadwalShift->shift;
+        $jamMasukPegawai = Carbon::parse($this->jam_masuk);
+        $jamKeluarPegawai = Carbon::parse($this->jam_keluar);
+        
+        // PERBAIKAN ERROR: Ambil hanya bagian tanggal dari tgl_presensi untuk menghindari error parsing.
+        $tanggalPresensi = Carbon::parse($this->tgl_presensi)->toDateString();
+        
+        // Jam shift
+        $jamMulaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_mulai);
+        $jamSelesaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_selesai);
+        
+        // Jika shift melewati tengah malam (misal: 22:00 - 06:00)
+        if ($jamSelesaiShift->lessThan($jamMulaiShift)) {
+            // Jika jam keluar pegawai berada di hari yang sama dengan jam masuk (artinya belum lewat tengah malam),
+            // maka jam selesai shift harus di hari berikutnya.
+            if ($jamKeluarPegawai->isSameDay($jamMasukPegawai)) {
+                 $jamSelesaiShift->addDay();
+            }
+        }
+        
+        // Batas jam kerja untuk gaji pokok:
+        // - Mulai: tidak boleh sebelum jam mulai shift
+        // - Selesai: tidak boleh melebihi jam selesai shift
+        $jamMulaiEfektif = $jamMasukPegawai->max($jamMulaiShift);
+        $jamSelesaiEfektif = $jamKeluarPegawai->min($jamSelesaiShift);
+        
+        // Hitung jam kerja dalam batas shift
+        if ($jamSelesaiEfektif->greaterThan($jamMulaiEfektif)) {
+            return $jamSelesaiEfektif->diffInMinutes($jamMulaiEfektif);
+        }
+        
         return 0;
     }
-
-    $shift = $this->jadwalShift->shift;
-    $jamMasuk = Carbon::parse($this->jam_masuk)->setTimezone('Asia/Jakarta');
-    $jamKeluar = Carbon::parse($this->jam_keluar)->setTimezone('Asia/Jakarta');
-    
-    // Jam shift
-    $jamMulaiShift = Carbon::createFromFormat('H:i:s', $shift->jam_mulai, 'Asia/Jakarta');
-    $jamSelesaiShift = Carbon::createFromFormat('H:i:s', $shift->jam_selesai, 'Asia/Jakarta');
-    
-    // Set tanggal yang sama
-    $jamMulaiShift->setDate($jamMasuk->year, $jamMasuk->month, $jamMasuk->day);
-    $jamSelesaiShift->setDate($jamKeluar->year, $jamKeluar->month, $jamKeluar->day);
-    
-    // Batas jam kerja untuk gaji pokok:
-    // - Mulai: tidak boleh sebelum jam mulai shift
-    // - Selesai: tidak boleh melebihi jam selesai shift
-    $jamMulaiEfektif = $jamMasuk->lessThan($jamMulaiShift) ? $jamMulaiShift : $jamMasuk;
-    $jamSelesaiEfektif = $jamKeluar->greaterThan($jamSelesaiShift) ? $jamSelesaiShift : $jamKeluar;
-    
-    // Hitung jam kerja dalam batas shift
-    if ($jamSelesaiEfektif->greaterThan($jamMulaiEfektif)) {
-        return $jamSelesaiEfektif->diffInMinutes($jamMulaiEfektif);
-    }
-    
-    return 0;
-}
 
     // Accessor untuk mengconvert datetime ke timezone Indonesia
     public function getJamMasukAttribute($value)
@@ -293,16 +304,18 @@ public function getTotalOvertimeMinutes(): int
     }
 
     // Method untuk mendapatkan label status lembur
-    public function getStatusLemburLabelAttribute(): string
+    public function getStatusLemburLabelAttribute()
     {
-        return match($this->status_lembur) {
-            self::STATUS_LEMBUR_NO => 'Tidak Lembur',
-            self::STATUS_LEMBUR_OVERTIME => 'Lembur (Pending)',
-            self::STATUS_LEMBUR_SHIFT => 'Shift Lembur (pending)',
-            self::STATUS_LEMBUR_APPROVED => 'Lembur (Disetujui)',
-            default => 'Tidak Diketahui'
-        };
+        switch ($this->status_lembur) {
+            case self::STATUS_LEMBUR_NO: return 'Tidak Lembur';
+            case self::STATUS_LEMBUR_OVERTIME: return 'Overtime';
+            case self::STATUS_LEMBUR_APPROVED: return 'Lembur Disetujui';
+            case self::STATUS_LEMBUR_SHIFT: return 'Shift Lembur';
+            case self::STATUS_LEMBUR_SHIFT_OVERTIME: return 'Shift Lembur + Overtime';
+            default: return null;
+        }
     }
+    
 
     public function getStatusLemburBadgeAttribute(): string
 {

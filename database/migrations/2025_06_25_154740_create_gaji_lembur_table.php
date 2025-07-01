@@ -30,7 +30,7 @@ return new class extends Migration
             $table->decimal('total_jam_lembur', 8, 2)->default(0)->comment('Total jam lembur dalam desimal (misal: 1.5 = 1 jam 30 menit)');
             $table->integer('total_gaji_lembur')->default(0)->comment('Total gaji lembur dalam rupiah');
 
-            $table->enum('tipe_lembur', ['shift_lembur', 'overtime'])->nullable();
+            $table->enum('tipe_lembur', ['shift_lembur', 'overtime', 'shift_lembur_overtime'])->nullable();
             
             // Snapshot
             $table->integer('rate_lembur_per_jam')->default(0)->comment('Snapshot rate lembur per jam saat transaksi');

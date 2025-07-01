@@ -11,8 +11,11 @@
     <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white" style="min-height: 50vh">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4 card-header-theme">
             <h3 class="fw-bold mb-0">Presensi Saya</h3>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-4">
                 <span class="text-white">{{ Carbon\Carbon::now()->format('d F Y') }}</span>
+                                <a href="{{ route('presensi.riwayat-lengkap') }}" class="btn btn-theme primary py-3 px-3">
+                    Lihat Riwayat Lengkap <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
         </div>
 
@@ -49,10 +52,11 @@
                                         </div>
                                     </td>
                                     <td class="align-middle">
-                                        <div>
                                             <strong>{{ $jadwal->shift->nama_shift }}</strong>
-                                            <div class="text-muted small">{{ $jadwal->shift->kode_shift }}</div>
-                                        </div>
+                                            <div class="text-muted small">{{ $jadwal->shift->is_shift_lembur == 1 
+                                                ? 'Shift Lembur' 
+                                                : 'Shift Normal' }} 
+                                            </div>
                                     </td>
                                     <td class="align-middle">
                                         {{ Carbon\Carbon::parse($jadwal->shift->jam_mulai)->format('H:i') }} - 
@@ -125,6 +129,13 @@
                                                 <strong>{{ $presensi->jadwalShift->shift->nama_shift }}</strong>
                                                 <div class="text-muted small">{{ $presensi->jadwalShift->shift->kode_shift }}</div>
                                             </div>
+                                            <div class="mt-1">
+                                            @if($presensi->jadwalShift->shift->is_shift_lembur == 1)
+                                                <span class="badge bg-info">Shift Lembur</span>
+                                            @else
+                                                <span class="badge bg-secondary">Shift Normal</span>
+                                            @endif
+                                        </div>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif

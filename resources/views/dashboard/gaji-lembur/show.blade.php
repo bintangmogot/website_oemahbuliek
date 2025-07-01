@@ -132,6 +132,20 @@
                                 <td class="fw-bold">Shift:</td>
                                 <td>{{ $gajiLembur->presensi->jadwalShift->shift->nama_shift ?? '—' }}</td>
                             </tr>
+                                <tr class="align-middle">
+                                    <td class="fw-bold">Jenis Shift</td>
+                                    <td>
+                                        @if($gajiLembur->presensi->jadwalShift && $gajiLembur->presensi->jadwalShift->shift)
+                                            @if($gajiLembur->presensi->jadwalShift->shift->is_shift_lembur == 1)
+                                                <span class="badge bg-info">Shift Lembur</span>
+                                            @else
+                                                <span class="badge bg-secondary">Shift Normal</span>
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
                             <tr>
                                 <td class="fw-bold">Jam Shift:</td>
                                 <td>

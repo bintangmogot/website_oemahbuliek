@@ -121,13 +121,15 @@
                     <thead>
                         <tr >
                             <th style="background-color: #ca414e; color: white;"><input type="checkbox" id="masterCheckbox"></th>
-                            <th style="background-color: #ca414e; color: white;">Tanggal Lembur</th>
-                            <th style="background-color: #ca414e; color: white;">Jam Mulai</th>
-                            <th style="background-color: #ca414e; color: white;">Jam Selesai</th>
-                            <th style="background-color: #ca414e; color: white;">Total Jam</th>
-                            <th style="background-color: #ca414e; color: white;">Rate/Jam</th>
-                            <th style="background-color: #ca414e; color: white;">Total Gaji</th>
-                            <th style="background-color: #ca414e; color: white;">Status</th>
+                            <th style="background-color: #ca414e; color: white;">Tanggal</th>
+                            <th style="background-color: #ca414e; color: white;">Shift</th>
+                            <th style="background-color: #ca414e; color: white;">Tipe Lembur</th>
+                            <th style="background-color: #ca414e; color: white; min-width: 120px;">Jam Aktual</th>
+                            <th style="background-color: #ca414e; color: white; min-width: 120px">Total Jam Dihitung</th>
+                            <th style="background-color: #ca414e; color: white; min-width: 120px">Rate/Jam</th>
+                            <th style="background-color: #ca414e; color: white; min-width: 120px">Total Gaji</th>
+                            <th style="background-color: #ca414e; color: white;">Status Presensi</th>
+                            <th style="background-color: #ca414e; color: white;">Status Bayar</th>
                             <th style="background-color: #ca414e; color: white;">Tgl Bayar</th>
                             <th style="background-color: #ca414e; color: white;">Aksi</th>
                         </tr>
@@ -139,13 +141,46 @@
                                     <input type="checkbox" name="gaji_lembur_ids[]" value="{{ $item->id }}" class="batch-checkbox">
                                 </td>
                                 <td class="align-middle">{{ $item->tgl_lembur->format('d/m/Y') }}</td>
-                                <td class="align-middle">{{ $item->jam_mulai ?? '—' }}</td>
-                                <td class="align-middle">{{ $item->jam_selesai ?? '—' }}</td>
+                                <td class="align-middle">
+                                    @if($item->presensi && $item->presensi->jadwalShift && $item->presensi->jadwalShift->shift)
+                                        <span class="badge bg-secondary">{{ $item->presensi->jadwalShift->shift->nama_shift }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
+                                <td class="align-middle">
+                                    <span class="badge {{ $item->tipe_lembur_badge }}">{{ $item->tipe_lembur_label }}</span>
+                                </td>
+
+                                <td class="align-middle">
+                                    @if($item->presensi)
+                                        {{ $item->presensi->jam_masuk ? \Carbon\Carbon::parse($item->presensi->jam_masuk)->format('H:i') : 'N/A' }} - 
+                                        {{ $item->presensi->jam_keluar ? \Carbon\Carbon::parse($item->presensi->jam_keluar)->format('H:i') : 'N/A' }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+
                                 <td class="align-middle">{{ $item->formatted_total_jam_lembur }}</td>
                                 <td class="align-middle">{{ $item->formatted_rate_lembur_per_jam }}</td>
                                 <td class="align-middle">
                                     <strong>{{ $item->formatted_total_gaji_lembur }}</strong>
                                 </td>
+                                {{-- STATUS PRESENSI --}}
+                                <td class="align-middle">
+                                    @if($item->presensi)
+                                        <span class="badge 
+                                            @if($item->presensi->status_approval == 1) bg-success
+                                            @elseif($item->presensi->status_approval == 2) bg-danger
+                                            @else bg-warning @endif">
+                                            {{ $item->presensi->status_approval_label }}
+                                        </span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                {{-- STATUS BAYAR --}}
                                 <td class="align-middle">
                                     <span class="badge {{ $item->status_pembayaran_badge }}">
                                         {{ $item->status_pembayaran_label }}
@@ -196,7 +231,7 @@
                     @if($gajiLembur->count() > 0)
                     <tfoot style="background-color:#F8F9FA">
                         <tr class="fw-bold">
-                            <td colspan="4" class="text-end">TOTAL:</td>
+                            <td colspan="5" class="text-end">TOTAL:</td>
                             <td>{{ number_format($statistik->total_jam ?? 0, 1) }} jam</td>
                             <td>—</td>
                             <td>Rp {{ number_format(($statistik->total_sudah_dibayar ?? 0) + ($statistik->total_belum_dibayar ?? 0), 0, ',', '.') }}</td>

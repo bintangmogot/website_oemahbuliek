@@ -28,11 +28,11 @@
                     <div class="row g-3">
                         <div class="col-md-2">
                             <label class="form-label">Tipe Lembur</label>
-                            <select name="show_lembur" class="form-select">
+                            <select name="tipe_lembur" class="form-select">
                                 <option value="">Semua Tipe</option>
-                                <option value="1" {{ request('show_lembur') == '1' ? 'selected' : '' }}>Semua Lembur</option>
-                                <option value="shift_lembur" {{ request('show_lembur') == 'shift_lembur' ? 'selected' : '' }}>Shift Lembur</option>
-                                <option value="overtime" {{ request('show_lembur') == 'overtime' ? 'selected' : '' }}>Overtime</option>
+                                <option value="overtime" {{ request('tipe_lembur') == 'overtime' ? 'selected' : '' }}>Overtime</option>
+                                <option value="shift_lembur" {{ request('tipe_lembur') == 'shift_lembur' ? 'selected' : '' }}>Shift Lembur</option>
+                                <option value="shift_lembur_overtime" {{ request('tipe_lembur') == 'shift_lembur_overtime' ? 'selected' : '' }}>Shift Lembur + Overtime</option>
                             </select>
                         </div>
                         <div class="col-md-2">
@@ -90,6 +90,14 @@
                     </div>
                 </div>
             </div>
+                        <div class="col-md-2">
+                <div class="card bg-warning text-white">
+                    <div class="card-body">
+                        <h4 class="card-text">{{ $shiftLemburOvertimeCount }}</h4>
+                        <p class="card-title">Shift Lembur + Overtime</p>
+                    </div>
+                </div>
+            </div>
             <div class="col-md-2">
                 <div class="card bg-danger text-white">
                     <div class="card-body">
@@ -106,7 +114,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2">
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5>Total Keseluruhan</h5>
@@ -142,12 +150,11 @@
                             <th>Tanggal</th>
                             <th>Shift</th>
                             <th>Tipe Lembur</th>
-                            <th>Jam Lembur</th>
+                            <th>Total Jam</th>
                             <th>Rate/Jam</th>
-                            <th>Total Gaji</th>
+                            <th>Gaji</th>
                             <th>Status</th>
                             <th>Tgl Bayar</th>
-                            <th>Keterangan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -167,32 +174,23 @@
                                 </div>
                             </td>
                             <td class="align-middle">{{ $item->tgl_lembur ? date('d/m/Y', strtotime($item->tgl_lembur)) : '-' }}</td>
-                        <td class="align-middle">
-                            @if($item->nama_shift)
-                                <div class="d-flex flex-column">
-                                    <span class="badge bg-secondary mb-1">
-                                        {{ $item->nama_shift }}
-                                    </span>
-                                    <small class="{{ $item->tipe_lembur === 'shift_lembur' ? 'text-info' : 'text-muted' }}">
-                                        <i class="fas fa-{{ $item->tipe_lembur === 'shift_lembur' ? 'moon' : 'sun' }}"></i> 
-                                        {{ $item->tipe_lembur === 'shift_lembur' ? 'Shift Lembur' : 'Shift Normal' }}
-                                    </small>
-                                </div>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td class="align-middle">
-                            @if($item->tipe_lembur === 'shift_lembur')
-                                <span class="badge bg-info">
-                                    <i class="fas fa-clock"></i> Shift Lembur
-                                </span>
-                            @else
-                                <span class="badge bg-warning">
-                                    <i class="fas fa-briefcase"></i> Overtime
-                                </span>
-                            @endif
-                        </td>
+                                <td class="align-middle">
+                                    @if($item->presensi && $item->presensi->jadwalShift && $item->presensi->jadwalShift->shift)
+                                        <div class="d-flex flex-column">
+                                            <span class="badge bg-secondary mb-1">{{ $item->presensi->jadwalShift->shift->nama_shift }}</span>
+                                            @if($item->presensi->jadwalShift->shift->is_shift_lembur)
+                                                <small class="text-info"><i class="fas fa-moon"></i> Shift Lembur</small>
+                                            @else
+                                                <small class="text-muted"><i class="fas fa-sun"></i> Shift Normal</small>
+                                            @endif
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="align-middle">
+                                    <span class="badge {{ $item->tipe_lembur_badge }}">{{ $item->tipe_lembur_label }}</span>
+                                </td>
                             <td class="align-middle">{{ $item->formatted_total_jam_lembur }}</td>
                             <td class="align-middle">{{ $item->formatted_rate_lembur_per_jam }}</td>
                             <td class="align-middle">
@@ -206,15 +204,6 @@
                             <td class="align-middle">
                                 {{ $item->tgl_bayar ? date('d/m/Y', strtotime($item->tgl_bayar)) : '—' }}
                             </td>
-                        <td class="align-middle text-muted small">
-                            @if($item->tipe_lembur === 'shift_lembur')
-                                <i class="fas fa-clock text-info"></i> 
-                                Shift Lembur - {{ $item->formatted_total_jam_lembur }} jam kerja efektif
-                            @else
-                                <i class="fas fa-overtime text-warning"></i>
-                                Overtime - {{ $item->formatted_total_jam_lembur }} jam lembur
-                            @endif
-                        </td>
                             <td class="align-middle">
                                 <div class="dropdown">
                                     <button class="btn btn-theme info dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">

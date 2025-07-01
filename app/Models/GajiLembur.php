@@ -386,34 +386,43 @@ public function isShiftLembur()
     return $this->tipe_lembur === 'shift_lembur';
 }
 
-/**
- * Get tipe lembur (shift lembur atau overtime)
- */
-// public function getTipeLemburAttribute()
-// {
-//     // Coba akses langsung melalui relasi yang sudah di-load
-//     if ($this->presensi && 
-//         $this->presensi->jadwalShift && 
-//         $this->presensi->jadwalShift->shift) {
-//         return $this->presensi->jadwalShift->shift->is_shift_lembur == 1 ? 'Shift Lembur' : 'Overtime';
-//     }
-    
-//     // Fallback ke method isShiftLembur jika relasi belum di-load
-//     return $this->isShiftLembur() ? 'Shift Lembur' : 'Overtime';
-// }
 
-/**
- * Get label untuk tipe lembur dengan badge
- */
-public function getTipeLemburBadgeAttribute()
-{
-    return $this->tipe_lembur === 'Shift Lembur' ? 'bg-info' : 'bg-warning';
-}
+    /**
+     * Accessor untuk mendapatkan label tipe lembur yang ramah dibaca.
+     */
+    public function getTipeLemburLabelAttribute()
+    {
+        // Accessor ini membaca nilai mentah dari database ($this->attributes['tipe_lembur'])
+        // untuk memastikan tidak ada gangguan dari accessor lain.
+        switch ($this->attributes['tipe_lembur']) {
+            case 'shift_lembur_overtime':
+                return 'Shift Lembur + Overtime';
+            case 'shift_lembur':
+                return 'Shift Lembur';
+            case 'overtime':
+                return 'Overtime';
+            default:
+                return 'N/A';
+        }
+    }
 
-public function getTipeLemburLabelAttribute()
-{
-    return $this->isShiftLembur() ? 'Shift Lembur' : 'Overtime';
-}
+    /**
+     * Accessor untuk mendapatkan kelas badge CSS berdasarkan tipe lembur.
+     */
+    public function getTipeLemburBadgeAttribute()
+    {
+        // Sama seperti di atas, membaca nilai mentah dari database.
+        switch ($this->attributes['tipe_lembur']) {
+            case 'shift_lembur_overtime':
+                return 'bg-primary'; // Warna biru untuk tipe baru
+            case 'shift_lembur':
+                return 'bg-info';
+            case 'overtime':
+                return 'bg-warning';
+            default:
+                return 'bg-secondary';
+        }
+    }
 /**
  * Get keterangan lengkap tentang perhitungan lembur
  */
@@ -510,13 +519,14 @@ public static function createFromPresensi(Presensi $presensi)
     return $gajiLembur;
 }
 
-/**
- * Scope untuk filter shift lembur saja
- */
-public function scopeShiftLembur($query)
-{
-    return $query->where('tipe_lembur', 'shift_lembur');
-}
+    /**
+     * Scope untuk filter shift lembur saja
+     */
+    public function scopeShiftLembur($query)
+    {
+        // Mencakup shift lembur biasa DAN shift lembur dengan overtime
+        return $query->whereIn('tipe_lembur', ['shift_lembur', 'shift_lembur_overtime']);
+    }
 
 /**
  * Scope untuk filter overtime saja
@@ -525,6 +535,13 @@ public function scopeOvertime($query)
 {
     return $query->where('tipe_lembur', 'overtime');
 }
+/*
+     * Scope untuk filter shift lembur DENGAN overtime saja
+     */
+    public function scopeShiftLemburOvertime($query)
+    {
+        return $query->where('tipe_lembur', 'shift_lembur_overtime');
+    }
 
 // Perbaikan 2: Scope untuk menampilkan SEMUA data lembur (shift lembur + overtime)
 public function scopeSemuaLembur($query)
@@ -564,27 +581,27 @@ public function syncTipeLembur()
 /**
  * Accessor untuk tipe lembur
  */
-public function getTipeLemburAttribute($value)
-{
-    // Jika sudah ada value di database, gunakan itu
-    if (!empty($value)) {
-        return $value === 'shift_lembur' ? 'Shift Lembur' : 'Overtime';
-    }
+// public function getTipeLemburAttribute($value)
+// {
+//     // Jika sudah ada value di database, gunakan itu
+//     if (!empty($value)) {
+//         return $value === 'shift_lembur' ? 'Shift Lembur' : 'Overtime';
+//     }
     
-    // Fallback: cek dari presensi jika tipe_lembur kosong
-    if ($this->presensi) {
-        if (!$this->presensi->relationLoaded('jadwalShift')) {
-            $this->presensi->load('jadwalShift.shift');
-        }
+//     // Fallback: cek dari presensi jika tipe_lembur kosong
+//     if ($this->presensi) {
+//         if (!$this->presensi->relationLoaded('jadwalShift')) {
+//             $this->presensi->load('jadwalShift.shift');
+//         }
         
-        $shift = $this->presensi->jadwalShift->shift ?? null;
-        if ($shift && $shift->is_shift_lembur == 1) {
-            return 'Shift Lembur';
-        }
-    }
+//         $shift = $this->presensi->jadwalShift->shift ?? null;
+//         if ($shift && $shift->is_shift_lembur == 1) {
+//             return 'Shift Lembur';
+//         }
+//     }
     
-    return 'Overtime'; // default
-}
+//     return 'Overtime'; // default
+// }
 
 /**
  * Get raw tipe lembur value

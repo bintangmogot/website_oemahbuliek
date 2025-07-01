@@ -30,7 +30,7 @@ class JadwalShiftController extends Controller
             ->where('users_id', auth()->id()) // Langsung filter berdasarkan users_id
 
             ->where('status', 1)
-            ->orderBy('tanggal', 'asc')
+            ->orderBy('tanggal', 'desc')
             ->paginate(10);
     }
 

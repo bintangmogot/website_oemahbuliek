@@ -193,6 +193,7 @@
                                                 {{ \Carbon\Carbon::parse($item->jadwalShift->shift->jam_mulai)->format('H:i') }} - 
                                                 {{ \Carbon\Carbon::parse($item->jadwalShift->shift->jam_selesai)->format('H:i') }}
                                             </small>
+                                            <br><small class="fw-bold"> {{ $item->jadwalShift->shift->is_shift_lembur == 1 ? 'Shift Lembur'  : 'Shift Normal' }}</small>
                                         @else
                                             <span class="text-muted">—</span>
                                         @endif
@@ -284,6 +285,9 @@
                                                 @break
                                             @case(3)
                                                 <span class="badge bg-info">Shift Lembur (Pending)</span>
+                                                @break
+                                            @case(4)
+                                                <span class="badge bg-info">Shift Lembur <br> Overtime (Pending)</span>
                                                 @break
                                         @endswitch
                                     </td>

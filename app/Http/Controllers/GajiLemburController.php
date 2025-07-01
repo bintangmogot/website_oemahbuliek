@@ -28,77 +28,53 @@ class GajiLemburController extends Controller
             ->orderBy('tgl_lembur', 'desc')
             ->orderBy('created_at', 'desc');
 
-        // Filter berdasarkan status pembayaran
-        if ($request->filled('status_pembayaran')) {
-            $query->byStatusPembayaran($request->status_pembayaran);
-        }
-
-        // Filter berdasarkan tanggal
-        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
-            $query->whereBetween('tgl_lembur', [$request->tanggal_dari, $request->tanggal_sampai]);
-        } elseif ($request->filled('tanggal_dari')) {
-            $query->whereDate('tgl_lembur', '>=', $request->tanggal_dari);
-        } elseif ($request->filled('tanggal_sampai')) {
-            $query->whereDate('tgl_lembur', '<=', $request->tanggal_sampai);
-        }
-
-        // Filter berdasarkan bulan dan tahun
-        if ($request->filled('bulan') && $request->filled('tahun')) {
-            $query->byBulanTahun($request->bulan, $request->tahun);
-        }
-
-        // Filter berdasarkan user
-        if ($request->filled('user_id')) {
-            $query->byUser($request->user_id);
-        }
-
     // Filter berdasarkan tipe lembur - MENGGUNAKAN SCOPE
 // Statistik berdasarkan filter yang sama
 $baseQuery = GajiLembur::query();
-
 // Terapkan filter yang sama seperti query utama
-if ($request->filled('status_pembayaran')) {
-    $baseQuery->byStatusPembayaran($request->status_pembayaran);
-}
+        // --- FILTER LOGIC ---
+        if ($request->filled('tipe_lembur')) {
+            $query->where('tipe_lembur', $request->tipe_lembur);
+            $baseQuery->where('tipe_lembur', $request->tipe_lembur);
+        }   
+        if ($request->filled('status_pembayaran')) {
+            $query->where('status_pembayaran', $request->status_pembayaran);
+            $baseQuery->where('status_pembayaran', $request->status_pembayaran);
+        }
+        if ($request->filled('user_id')) {
+            $query->where('users_id', $request->user_id);
+            $baseQuery->where('users_id', $request->user_id);
+        }
+        if ($request->filled('tanggal_dari')) {
+            $query->whereDate('tgl_lembur', '>=', $request->tanggal_dari);
+            $baseQuery->whereDate('tgl_lembur', '>=', $request->tanggal_dari);
+        }
+        if ($request->filled('tanggal_sampai')) {
+            $query->whereDate('tgl_lembur', '<=', $request->tanggal_sampai);
+            $baseQuery->whereDate('tgl_lembur', '<=', $request->tanggal_sampai);
+        }
 
-if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
-    $baseQuery->whereBetween('tgl_lembur', [$request->tanggal_dari, $request->tanggal_sampai]);
-} elseif ($request->filled('tanggal_dari')) {
-    $baseQuery->whereDate('tgl_lembur', '>=', $request->tanggal_dari);
-} elseif ($request->filled('tanggal_sampai')) {
-    $baseQuery->whereDate('tgl_lembur', '<=', $request->tanggal_sampai);
-}
+        // --- STATISTICS CALCULATION ---
+        $totalUnpaid = (clone $baseQuery)->where('status_pembayaran', 0)->sum('total_gaji_lembur');
+        $totalPaid = (clone $baseQuery)->where('status_pembayaran', 1)->sum('total_gaji_lembur');
+        $countUnpaid = (clone $baseQuery)->where('status_pembayaran', 0)->count();
 
-if ($request->filled('bulan') && $request->filled('tahun')) {
-    $baseQuery->byBulanTahun($request->bulan, $request->tahun);
-}
+        // Statistik berdasarkan tipe lembur yang spesifik
+        $shiftLemburCount = (clone $baseQuery)->where('tipe_lembur', 'shift_lembur')->count();
+        $overtimeCount = (clone $baseQuery)->where('tipe_lembur', 'overtime')->count();
+        $shiftLemburOvertimeCount = (clone $baseQuery)->where('tipe_lembur', 'shift_lembur_overtime')->count();
 
-if ($request->filled('user_id')) {
-    $baseQuery->byUser($request->user_id);
-}
-
-// Statistik umum
-$totalUnpaid = (clone $baseQuery)->unpaid()->sum('total_gaji_lembur');
-$totalPaid = (clone $baseQuery)->paid()->sum('total_gaji_lembur');
-$countUnpaid = (clone $baseQuery)->unpaid()->count();
-
-// Statistik berdasarkan tipe lembur
-$shiftLemburCount = (clone $baseQuery)->shiftLembur()->count();
-$overtimeCount = (clone $baseQuery)->overtime()->count();
-
-
-$gajiLembur = $query->paginate(20);
-
-        // Data untuk filter
-        $users = User::where('role', 'pegawai')->get(['id', 'nama_lengkap']);
+        $gajiLembur = $query->paginate(20)->appends($request->query());
+        $users = User::where('role', 'pegawai')->orderBy('nama_lengkap')->get();
 
         return view('dashboard.gaji-lembur.admin.index', compact(
-            'gajiLembur', 
-            'totalUnpaid', 
-            'totalPaid', 
+            'gajiLembur',
+            'totalUnpaid',
+            'totalPaid',
             'countUnpaid',
             'shiftLemburCount',
             'overtimeCount',
+            'shiftLemburOvertimeCount',
             'users'
         ));
     }
@@ -109,10 +85,11 @@ $gajiLembur = $query->paginate(20);
         
         $tanggalMulai = $request->get('tanggal_mulai');
         $tanggalSelesai = $request->get('tanggal_selesai');
-        $statusPembayaran = $request->get('status_pembayaran');
+        $statusPembayaran = $request->get('status_pembayaran'); 
         
         // Query gaji lembur dengan pagination
-        $gajiLemburQuery = GajiLembur::where('users_id', $userId)
+            $gajiLemburQuery = GajiLembur::with(['presensi.jadwalShift.shift']) // <-- Eager load relasi
+            ->where('users_id', $userId)
             ->when($tanggalMulai, function($query) use ($tanggalMulai) {
                 return $query->where('tgl_lembur', '>=', $tanggalMulai);
             })

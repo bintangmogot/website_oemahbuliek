@@ -79,6 +79,21 @@
                                         @endif
                                     </td>
                                 </tr>
+                                        <tr>
+                                    <td><strong>Jenis Shift</strong></td>
+                                    <td>:</td>
+                                    <td>
+                                        @if($presensi->jadwalShift && $presensi->jadwalShift->shift)
+                                            @if($presensi->jadwalShift->shift->is_shift_lembur == 1)
+                                                <span class="badge bg-info">Shift Lembur</span>
+                                            @else
+                                                <span class="badge bg-secondary">Shift Normal</span>
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                </tr>
                                 <tr>
                                     <td><strong>Toleransi</strong></td>
                                     <td>:</td>

@@ -86,6 +86,7 @@
                         <tr>
                             <th>Tanggal Lembur</th>
                             <th>Shift</th>
+                            <th>Tipe Shift</th>
                             <th>Total Jam</th>
                             <th>Rate/Jam</th>
                             <th>Total Gaji</th>
@@ -113,6 +114,17 @@
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif
+                                </td>
+                                <td class="align-middle">
+                                        @if($item->presensi->jadwalShift && $item->presensi->jadwalShift->shift)
+                                            @if($item->presensi->jadwalShift->shift->is_shift_lembur == 1)
+                                                <span class="badge bg-info">Shift Lembur</span>
+                                            @else
+                                                <span class="badge bg-secondary">Shift Normal</span>
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
                                 </td>
                                 <td class="align-middle">
                                     <strong>{{ $item->formatted_total_jam_lembur }}</strong>

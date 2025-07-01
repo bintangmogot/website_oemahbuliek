@@ -70,6 +70,49 @@ class ShiftSeeder extends Seeder
             'status' => 1,
         ]);
 
+            Shift::firstOrCreate([
+            'nama_shift' => 'Overtime',
+        ], [
+            'jam_mulai'            => '16:30:00',
+            'jam_selesai'          => '20:45:00',
+            'toleransi_terlambat'  => 10,
+            'batas_lembur_min'     => 0,
+            'is_shift_lembur'      => 1,
+            'status' => 1,
+        ]);
+
+        Shift::firstOrCreate([
+            'nama_shift' => 'Lembur shift',
+        ], [
+            'jam_mulai'            => '16:30:00',
+            'jam_selesai'          => '16:45:00',
+            'toleransi_terlambat'  => 10,
+            'batas_lembur_min'     => 30,
+            'is_shift_lembur'      => 1,
+            'status' => 1,
+        ]);
+
+                Shift::firstOrCreate([
+            'nama_shift' => 'normal aja',
+        ], [
+            'jam_mulai'            => '16:30:00',
+            'jam_selesai'          => '16:50:00',
+            'toleransi_terlambat'  => 10,
+            'batas_lembur_min'     => 30,
+            'is_shift_lembur'      => 0,
+            'status' => 1,
+        ]);
+
+        Shift::firstOrCreate([
+            'nama_shift' => 'normal aja',
+        ], [
+            'jam_mulai'            => '16:30:00',
+            'jam_selesai'          => '16:50:00',
+            'toleransi_terlambat'  => 10,
+            'batas_lembur_min'     => 30,
+            'is_shift_lembur'      => 0,
+            'status' => 1,
+        ]);
         // 3 shift master
         // Shift::factory()->count(3)->create();
 

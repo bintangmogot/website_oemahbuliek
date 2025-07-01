@@ -125,6 +125,31 @@ public function adminIndex(Request $request)
     }
 
     /**
+     * Menampilkan halaman riwayat presensi lengkap untuk pegawai dengan filter dan pagination.
+     */
+    public function riwayatLengkap(Request $request)
+{
+    $userId = Auth::id();
+
+    $query = Presensi::with(['jadwalShift.shift'])
+        ->where('users_id', $userId)
+        ->orderBy('tgl_presensi', 'desc');
+
+    // Terapkan filter tanggal jika ada
+    if ($request->filled('start_date')) {
+        $query->whereDate('tgl_presensi', '>=', $request->start_date);
+    }
+    if ($request->filled('end_date')) {
+        $query->whereDate('tgl_presensi', '<=', $request->end_date);
+    }
+
+    // Gunakan pagination untuk menangani data dalam jumlah besar
+    $riwayatPresensi = $query->paginate(15)->appends($request->query());
+
+    return view('dashboard.presensi.pegawai.riwayat-lengkap', compact('riwayatPresensi'));
+}
+
+    /**
      * Tampilkan halaman presensi untuk jadwal tertentu
      */
     public function show(JadwalShift $jadwalShift)
@@ -290,7 +315,7 @@ public function adminIndex(Request $request)
     /**
      * Check Out
      */
-    public function checkOut(Request $request)
+ public function checkOut(Request $request)
     {
         $request->validate([
             'foto' => 'required|image|max:2048',
@@ -299,12 +324,10 @@ public function adminIndex(Request $request)
 
         $presensi = Presensi::with(['jadwalShift.shift'])->findOrFail($request->presensi_id);
         
-        // Validasi akses
         if ($presensi->users_id !== Auth::id()) {
             return response()->json(['error' => 'Tidak memiliki akses'], 403);
         }
 
-        // Validasi apakah bisa check out
         if (!$presensi->canCheckOut()) {
             return response()->json(['error' => 'Tidak dapat check out. Pastikan sudah check in terlebih dahulu'], 400);
         }
@@ -312,221 +335,98 @@ public function adminIndex(Request $request)
         try {
             DB::beginTransaction();
 
-            // Upload foto
             $foto = $request->file('foto');
             $namaFoto = 'checkout_' . $presensi->users_id . '_' . date('Y-m-d_H-i-s') . '.' . $foto->getClientOriginalExtension();
             $fotoPath = $foto->storeAs('presensi', $namaFoto, 'public');
 
-            // Update presensi
             $jamKeluar = Carbon::now();
             $shift = $presensi->jadwalShift->shift;
-            $jamSelesaiShift = Carbon::parse($shift->jam_selesai);
-            $jamSelesaiShift->setDate($jamKeluar->year, $jamKeluar->month, $jamKeluar->day);
+            
+            $tanggalPresensi = Carbon::parse($presensi->tgl_presensi)->toDateString();
+            $jamMulaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_mulai);
+            $jamSelesaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_selesai);
+
+            if ($jamSelesaiShift->lessThan($jamMulaiShift)) {
+                $jamSelesaiShift->addDay();
+            }
+
+            $presensi->jam_keluar = $jamKeluar;
+            $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours();
 
             $updateData = [
                 'jam_keluar' => $jamKeluar,
                 'foto_keluar' => $fotoPath,
-                'status_approval' => Presensi::STATUS_APPROVAL_PENDING // SEMUA CHECK OUT HARUS PENDING
+                'status_approval' => Presensi::STATUS_APPROVAL_PENDING,
+                'jam_kerja_efektif' => $jamKerjaEfektifMenit
             ];
 
-            $warnings = [];
-            $menitOvertime = 0;
-            $jamLemburTotal = 0; // Total jam untuk perhitungan lembur
-
-            // LOGIKA UTAMA: Cek tipe shift untuk menentukan perhitungan lembur
             $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
 
-            // JIKA SHIFT LEMBUR: SELALU set status_lembur = STATUS_LEMBUR_SHIFT (3)
             if ($isShiftLembur) {
-                $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT;
-                
-                // Shift Lembur: Seluruh jam kerja efektif dihitung sebagai lembur
-                $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours(); // Hasil dalam MENIT
-                $jamLemburTotal = round($jamKerjaEfektifMenit / 60, 2); // KONVERSI ke jam (decimal)
-                
+                $menitOvertimeTambahan = 0;
+
+                // Cek dulu apakah ada waktu di luar jam shift
+                if ($jamKeluar->greaterThan($jamSelesaiShift)) {
+                    // Hitung overtime mentah
+                    $totalMenitOvertimeRaw = $jamKeluar->diffInMinutes($jamSelesaiShift);
+                    // Ambil batas minimum
+                    $batasLemburMin = $shift->batas_lembur_min ?? 30;
+                    // Hitung overtime yang valid setelah dikurangi batas minimum
+                    $menitOvertimeTambahan = max(0, $totalMenitOvertimeRaw - $batasLemburMin);
+                }
+
+                // Tentukan status dan perhitungan berdasarkan ada atau tidaknya overtime tambahan yang valid
+                if ($menitOvertimeTambahan > 0) {
+                    // Kasus: Shift Lembur + Overtime (VALID)
+                    $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT_OVERTIME;
+                    $totalMenitLembur = $jamKerjaEfektifMenit + $menitOvertimeTambahan;
+                    $jamLemburTotal = round($totalMenitLembur / 60, 2);
+                    $keteranganLembur = "Shift Lembur ({$jamKerjaEfektifMenit} mnt) + Overtime ({$menitOvertimeTambahan} mnt). Total: {$jamLemburTotal} jam.";
+                    $tipeLembur = 'shift_lembur_overtime';
+                } else {
+                    // Kasus: Shift Lembur Biasa (karena tidak ada overtime atau overtime tidak memenuhi batas minimum)
+                    $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT;
+                    $jamLemburTotal = round($jamKerjaEfektifMenit / 60, 2);
+                    $keteranganLembur = "Shift lembur. Total jam kerja efektif: {$jamLemburTotal} jam.";
+                    $tipeLembur = 'shift_lembur';
+                }
+
+                // Simpan ke GajiLembur jika ada jam lembur
                 if ($jamLemburTotal > 0) {
-                    // Buat/update record gaji lembur untuk shift lembur
                     GajiLembur::updateOrCreate(
-                        [
-                            'presensi_id' => $presensi->id,
-                            'users_id' => $presensi->users_id,
-                            'tgl_lembur' => $presensi->tgl_presensi,
-                        ],
-                        [
-                            'tipe_lembur' => 'shift_lembur',
-                            'total_jam_lembur' => $jamLemburTotal,
-                            'total_gaji_lembur' => 0, // Akan dihitung nanti berdasarkan pengaturan gaji
-                            'status_pembayaran' => 0,
-                            'keterangan_lembur' => "Shift lembur - seluruh {$jamLemburTotal} jam kerja efektif"
-                        ]
+                        ['presensi_id' => $presensi->id],
+                        ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => $tipeLembur, 'total_jam_lembur' => $jamLemburTotal, 'keterangan_lembur' => $keteranganLembur]
                     );
-                    
-                    $warnings[] = [
-                        'title' => 'Informasi: Shift Lembur',
-                        'message' => "Anda bekerja pada shift lembur selama " . number_format($jamLemburTotal, 2) . " jam. Seluruh jam kerja akan dihitung sebagai lembur jika disetujui admin.",
-                        'type' => 'shift_lembur'
-                    ];
-                } else {
-                    // Tetap set sebagai shift lembur meskipun jam kerja 0
-                    // Hapus record gaji lembur jika tidak ada jam kerja
-                    GajiLembur::where('presensi_id', $presensi->id)->delete();
                 }
-
-                // Untuk shift lembur, cek kondisi pulang untuk status kehadiran
-                if ($jamKeluar->lessThan($jamSelesaiShift)) {
-                    $menitPulangAwal = $jamSelesaiShift->diffInMinutes($jamKeluar);
-                    $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_HALF_DAY;
-                    
-                    $warnings[] = [
-                        'title' => 'Peringatan: Pulang Lebih Awal!',
-                        'message' => "Anda pulang {$menitPulangAwal} menit lebih awal dari jadwal ({$jamSelesaiShift->format('H:i')}). Presensi Anda akan ditinjau oleh admin.",
-                        'type' => 'early_checkout'
-                    ];
-                } else {
-                    // Pertahankan status kehadiran yang sudah ada (present/late)
-                    if (!isset($updateData['status_kehadiran'])) {
-                        $updateData['status_kehadiran'] = $presensi->status_kehadiran ?: Presensi::STATUS_KEHADIRAN_PRESENT;
-                    }
-                }
-
-                // TAMBAHAN: Jika ada overtime pada shift lembur, tetap status_lembur = STATUS_LEMBUR_SHIFT
+            } else {
                 if ($jamKeluar->greaterThan($jamSelesaiShift)) {
                     $totalMenitOvertime = $jamKeluar->diffInMinutes($jamSelesaiShift);
-                    $warnings[] = [
-                        'title' => 'Informasi: Overtime pada Shift Lembur',
-                        'message' => "Anda bekerja {$totalMenitOvertime} menit melebihi jadwal shift lembur. Seluruh jam kerja tetap dihitung sebagai shift lembur.",
-                        'type' => 'shift_lembur_overtime'
-                    ];
-                }
-            }
-            // JIKA SHIFT NORMAL: Gunakan logika lembur overtime seperti sebelumnya
-            else {
-                // Cek apakah pulang lebih awal
-                if ($jamKeluar->lessThan($jamSelesaiShift)) {
-                    $menitPulangAwal = $jamSelesaiShift->diffInMinutes($jamKeluar);
-                    
-                    // Jika pulang lebih awal, ubah status kehadiran menjadi half day
-                    $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_HALF_DAY;
-                    $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO; // Tidak ada lembur jika pulang awal
-                    
-                    $warnings[] = [
-                        'title' => 'Peringatan: Pulang Lebih Awal!',
-                        'message' => "Anda pulang {$menitPulangAwal} menit lebih awal dari jadwal ({$jamSelesaiShift->format('H:i')}). Presensi Anda akan ditinjau oleh admin.",
-                        'type' => 'early_checkout'
-                    ];
-                }
-                // Cek apakah pulang tepat waktu atau overtime
-                else {
-                    // Shift Normal: Hanya overtime yang dihitung sebagai lembur
-                    if ($jamKeluar->greaterThan($jamSelesaiShift)) {
-                        $totalMenitOvertime = $jamKeluar->diffInMinutes($jamSelesaiShift);
-                        $batasLemburMin = $shift->batas_lembur_min ?? 30; // Default 30 menit
-                        // Hitung lembur setelah dikurangi batas minimum
-                        $menitOvertime = max(0, $totalMenitOvertime - $batasLemburMin);
+                    $batasLemburMin = $shift->batas_lembur_min ?? 30;
+                    $menitOvertime = max(0, $totalMenitOvertime - $batasLemburMin);
 
-                        // Jika overtime melebihi batas minimum dan masih ada sisa setelah dikurangi, set status lembur
-                        if ($totalMenitOvertime >= $batasLemburMin && $menitOvertime > 0) {
-                            $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_OVERTIME;
-                    
-                            // Buat/update record gaji lembur
-                            $jamLembur = round($menitOvertime / 60, 2); // Convert ke jam (decimal)
-                    
-                            GajiLembur::updateOrCreate(
-                                [
-                                    'presensi_id' => $presensi->id,
-                                    'users_id' => $presensi->users_id,
-                                    'tgl_lembur' => $presensi->tgl_presensi,
-                                ],
-                                [
-                                    'pengaturan_gaji_id' => 1, // Sesuaikan dengan kebutuhan
-                                    'tipe_lembur' => 'overtime',
-                                    'total_jam_lembur' => $jamLembur,
-                                    'total_gaji_lembur' => 0, // Akan dihitung nanti berdasarkan pengaturan gaji
-                                    'status_pembayaran' => 0,
-                                    'keterangan_lembur' => "Overtime {$menitOvertime} menit"
-                                ]
-                            );
-                            $warnings[] = [
-                                'title' => 'Informasi: Lembur Terdeteksi',
-                                'message' => "Anda lembur selama {$menitOvertime} menit. Lembur akan dihitung jika disetujui admin.",
-                                'type' => 'overtime'
-                            ];
-                        } else {
-                            // Overtime kurang dari batas minimum, tidak dihitung lembur
-                            $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO;
-                            $menitOvertime = 0;
-                            
-                            // Hapus record gaji lembur jika ada (karena tidak memenuhi syarat)
-                            GajiLembur::where('presensi_id', $presensi->id)->delete();
-
-                            if ($totalMenitOvertime > 0) {
-                                $warnings[] = [
-                                    'title' => 'Informasi: Overtime Tidak Dihitung',
-                                    'message' => "Anda pulang {$totalMenitOvertime} menit setelah jam kerja, namun belum mencapai batas minimum lembur ({$batasLemburMin} menit).",
-                                    'type' => 'overtime_minimal'
-                                ];
-                            }
-                        }
-                    } else {
-                        // Pulang tepat waktu pada shift normal
-                        $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO;
-                        $menitOvertime = 0;
-                        // Hapus record gaji lembur jika ada
-                        GajiLembur::where('presensi_id', $presensi->id)->delete();
-                    }
-                    
-                    // Pertahankan status kehadiran yang sudah ada (present/late)
-                    // Kecuali jika belum di-set, maka set sebagai present
-                    if (!isset($updateData['status_kehadiran'])) {
-                        $updateData['status_kehadiran'] = $presensi->status_kehadiran ?: Presensi::STATUS_KEHADIRAN_PRESENT;
+                    if ($menitOvertime > 0) {
+                        $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_OVERTIME;
+                        $jamLembur = round($menitOvertime / 60, 2);
+                        GajiLembur::updateOrCreate(
+                            ['presensi_id' => $presensi->id],
+                            ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => 'overtime', 'total_jam_lembur' => $jamLembur, 'keterangan_lembur' => "Overtime {$menitOvertime} menit"]
+                        );
                     }
                 }
             }
 
             $presensi->update($updateData);
-            // Hitung dan simpan jam kerja efektif
-            $jamKerjaEfektif = $presensi->calculateEffectiveWorkHours();
-            $presensi->update(['jam_kerja_efektif' => $jamKerjaEfektif]);
-
-            // Jika ada lembur yang diapprove, hitung total gaji lembur
-            if ($presensi->fresh()->status_lembur === Presensi::STATUS_LEMBUR_APPROVED) {
-                $gajiLembur = GajiLembur::where('presensi_id', $presensi->id)->first();
-                if ($gajiLembur) {
-                    // Hitung gaji lembur jika ada pengaturan gaji
-                    // Sesuaikan dengan struktur tabel pengaturan_gaji Anda
-                    $gajiLembur->update([
-                        'total_gaji_lembur' => $gajiLembur->total_jam_lembur * 50000, // Contoh tarif per jam
-                    ]);
-                }
-            }
-
+            
             DB::commit();
 
-            $response = [
-                'success' => true,
-                'message' => 'Check out berhasil!',
-                'data' => [
-                    'jam_keluar' => $jamKeluar->format('H:i'),
-                    'foto_keluar' => Storage::url($fotoPath),
-                    'status_kehadiran' => $presensi->fresh()->status_kehadiran_label,
-                    'status_lembur' => $presensi->fresh()->status_lembur_label,
-                    'status_approval' => $presensi->fresh()->status_approval_label,
-                    'menit_overtime' => $menitOvertime ?? 0,
-                    'is_shift_lembur' => $isShiftLembur
-                ]
-            ];
-
-            if (!empty($warnings)) {
-                $response['warnings'] = $warnings;
-            }
-
-            return response()->json($response);
+            return response()->json(['success' => true, 'message' => 'Check out berhasil!']);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
+
 
     /**
      * Approve presensi (Admin only)
@@ -551,8 +451,11 @@ public function adminIndex(Request $request)
             $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
 
             // Jika ada lembur pending (overtime atau shift lembur), approve juga
-            if ($presensi->status_lembur === Presensi::STATUS_LEMBUR_OVERTIME || 
-                $presensi->status_lembur === Presensi::STATUS_LEMBUR_SHIFT) {
+            if (in_array($presensi->status_lembur, [
+                Presensi::STATUS_LEMBUR_OVERTIME,
+                Presensi::STATUS_LEMBUR_SHIFT,
+                Presensi::STATUS_LEMBUR_SHIFT_OVERTIME
+            ])) {
                 $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_APPROVED;
             }
 
@@ -582,160 +485,90 @@ public function adminIndex(Request $request)
 /**
  * Process gaji lembur - membuat record di database saat checkout (dengan perhitungan gaji untuk preview)
  */
-private function processGajiLembur($presensi)
-{
-    $presensi->load('jadwalShift.shift');
-    $shift = $presensi->jadwalShift->shift;
-    $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
-    
-    // Hanya proses jika ada lembur (overtime atau shift lembur)
-    if (!in_array($presensi->status_lembur, [
-        Presensi::STATUS_LEMBUR_OVERTIME, 
-        Presensi::STATUS_LEMBUR_SHIFT, 
-        Presensi::STATUS_LEMBUR_APPROVED
-    ])) {
-        // Hapus record gaji lembur jika status lembur = NO
-        GajiLembur::where('presensi_id', $presensi->id)->delete();
-        return;
-    }
-    
-    // Tentukan tipe lembur berdasarkan jenis shift
-    $tipeLembur = $isShiftLembur ? 'shift_lembur' : 'overtime';
-    
-    // Hitung jam lembur
-    if ($tipeLembur === 'shift_lembur') {
-        // Untuk shift lembur: seluruh jam kerja efektif
-        $jamKerjaEfektifMenit = $presensi->jam_kerja_efektif ?: 0;
-        $jamLembur = round($jamKerjaEfektifMenit / 60, 2);
-        $keterangan = "Shift lembur - seluruh {$jamLembur} jam kerja efektif";
-    } else {
-        // Untuk overtime: hitung dari jam keluar - jam selesai shift
-        $jamKeluar = Carbon::parse($presensi->jam_keluar);
-        $jamSelesaiShift = Carbon::parse($shift->jam_selesai);
-        $jamSelesaiShift->setDate($jamKeluar->year, $jamKeluar->month, $jamKeluar->day);
-        
-        if ($jamKeluar->greaterThan($jamSelesaiShift)) {
-            $totalMenitOvertime = $jamKeluar->diffInMinutes($jamSelesaiShift);
-            $batasLemburMin = $shift->batas_lembur_min ?? 30;
-            $menitOvertime = max(0, $totalMenitOvertime - $batasLemburMin);
-            $jamLembur = round($menitOvertime / 60, 2);
-            $keterangan = "Overtime {$menitOvertime} menit";
-        } else {
-            $jamLembur = 0;
-            $keterangan = "Tidak ada overtime";
-        }
-    }
-    
-    // Buat/update record gaji lembur jika ada jam lembur
-    if ($jamLembur > 0) {
-        // Hitung gaji lembur untuk preview (menggunakan perhitungan yang sudah ada)
-        $totalGajiLembur = $jamLembur * 50000; // Sesuai dengan perhitungan yang sudah ada
-        
-        GajiLembur::updateOrCreate(
-            [
-                'presensi_id' => $presensi->id,
-                'users_id' => $presensi->users_id,
-                'tgl_lembur' => $presensi->tgl_presensi,
-            ],
-            [
-                'tipe_lembur' => $tipeLembur,
-                'total_jam_lembur' => $jamLembur,
-                'total_gaji_lembur' => $totalGajiLembur, // Sudah dihitung untuk preview
-                'status_pembayaran' => 0,
-                'keterangan_lembur' => $keterangan
-            ]
-        );
-    } else {
-        // Hapus record jika tidak ada jam lembur
-        GajiLembur::where('presensi_id', $presensi->id)->delete();
-    }
-}
+    private function processGajiLembur(Presensi $presensi)
+    {
+        $gajiLembur = GajiLembur::where('presensi_id', $presensi->id)->first();
 
+        if (!$gajiLembur) {
+            return;
+        }
+
+        $jamLemburFinal = $gajiLembur->total_jam_lembur;
+        $rateLembur = $gajiLembur->rate_lembur_per_jam ?: 50000;
+        $totalGajiLembur = $jamLemburFinal * $rateLembur;
+
+        $gajiLembur->update(['total_gaji_lembur' => $totalGajiLembur]);
+    }
     /**
      * Reject presensi (Admin only)
      */
-public function reject(Request $request, Presensi $presensi)
-{
-    $request->validate([
-        'catatan_admin' => 'required|string|max:500'
-    ]);
+    public function reject(Request $request, Presensi $presensi)
+    {
+        $request->validate([
+            'catatan_admin' => 'required|string|max:500'
+        ]);
 
-    try {
-        DB::beginTransaction();
+        try {
+            DB::beginTransaction();
 
-        $updateData = [
-            'status_approval' => Presensi::STATUS_APPROVAL_REJECTED,
-            'catatan_admin' => $request->catatan_admin
-        ];
+            $updateData = [
+                'status_approval' => Presensi::STATUS_APPROVAL_REJECTED,
+                'catatan_admin' => $request->catatan_admin
+            ];
 
-        // Load relasi shift untuk cek tipe shift
-        $presensi->load('jadwalShift.shift');
-        $shift = $presensi->jadwalShift->shift;
-        $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
+            $presensi->load('jadwalShift.shift');
+            $shift = $presensi->jadwalShift->shift;
+            $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
 
-        // Logic penolakan berdasarkan kondisi:
-        
-        // 1. Jika pegawai tepat waktu masuk dan pulang tepat waktu (tidak ada lembur), 
-        //    tapi ditolak = tidak dihitung sama sekali (ABSENT)
-        if ($presensi->status_kehadiran === Presensi::STATUS_KEHADIRAN_PRESENT && 
-            $presensi->status_lembur === Presensi::STATUS_LEMBUR_NO) {
-            $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
-        }
-        
-        // 2. Jika pegawai terlambat masuk tapi ditolak = tetap ABSENT
-        if ($presensi->status_kehadiran === Presensi::STATUS_KEHADIRAN_LATE) {
-            $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
-        }
-        
-        // 3. Jika pegawai pulang lebih awal tapi ditolak = tetap ABSENT
-        if ($presensi->status_kehadiran === Presensi::STATUS_KEHADIRAN_HALF_DAY) {
-            $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
-        }
-        
-        // 4. Jika ada lembur tapi ditolak = lembur tidak dihitung, 
-        //    tapi jam kerja normal tetap dihitung sesuai status aslinya
-        if ($presensi->status_lembur === Presensi::STATUS_LEMBUR_OVERTIME || 
-                $presensi->status_lembur === Presensi::STATUS_LEMBUR_SHIFT) {
-            $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO;
-            // Untuk shift lembur yang ditolak, karena seluruh jam kerja = lembur,
-            // maka jika ditolak = tidak ada jam kerja yang dihitung = ABSENT
-            if ($isShiftLembur) {
-                $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
-            } else {
-            // Untuk kasus lembur yang ditolak, status kehadiran tetap sesuai kondisi aslinya
-            // Misalnya: jika pegawai masuk tepat waktu tapi lembur ditolak, 
-            // maka tetap dihitung PRESENT untuk jam kerja normal
-            
-            // Kembalikan status kehadiran ke kondisi tanpa lembur
-            if ($presensi->status_kehadiran === Presensi::STATUS_KEHADIRAN_PRESENT ||
-                $presensi->status_kehadiran === Presensi::STATUS_KEHADIRAN_LATE) {
-                // Pertahankan status kehadiran asli (present/late)
-                // Tidak perlu mengubah status_kehadiran karena sudah benar
+            // Jika ada lembur (apapun jenisnya) tapi ditolak
+            if (in_array($presensi->status_lembur, [
+                Presensi::STATUS_LEMBUR_OVERTIME, 
+                Presensi::STATUS_LEMBUR_SHIFT,
+                Presensi::STATUS_LEMBUR_SHIFT_OVERTIME // <-- Penambahan kondisi
+            ])) {
+                $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO;
+                
+                // Jika shift lembur (apapun jenisnya) ditolak, maka dianggap tidak masuk kerja
+                if ($isShiftLembur) {
+                    $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
+                }
+                // Jika hanya overtime biasa yang ditolak, status kehadiran (PRESENT/LATE) tidak diubah.
             }
-        }
-    }
+            // Jika tidak ada lembur, tapi presensi tetap ditolak
+            else {
+                // Jika pegawai terlambat, pulang awal, atau bahkan hadir tepat waktu tapi tetap ditolak,
+                // maka status kehadirannya dianggap ABSENT.
+                if (in_array($presensi->status_kehadiran, [
+                    Presensi::STATUS_KEHADIRAN_PRESENT,
+                    Presensi::STATUS_KEHADIRAN_LATE,
+                    Presensi::STATUS_KEHADIRAN_HALF_DAY
+                ])) {
+                     $updateData['status_kehadiran'] = Presensi::STATUS_KEHADIRAN_ABSENT;
+                }
+            }
 
-        $presensi->update($updateData);
+            $presensi->update($updateData);
 
-            // Jika lembur ditolak, hapus record gaji lembur
+            // Jika lembur ditolak, hapus record gaji lembur yang terkait.
+            // Pengecekan ini memastikan GajiLembur dihapus untuk semua jenis lembur yang ditolak.
             if (isset($updateData['status_lembur']) && $updateData['status_lembur'] === Presensi::STATUS_LEMBUR_NO) {
                 GajiLembur::where('presensi_id', $presensi->id)->delete();
             }
 
-        DB::commit();
+            DB::commit();
 
-        $pesan = 'Presensi berhasil ditolak dengan alasan: ' . $request->catatan_admin;
-        if ($isShiftLembur && isset($updateData['status_lembur'])) {
-            $pesan .= ' (Shift lembur ditolak, seluruh jam kerja tidak dihitung)';
+            $pesan = 'Presensi berhasil ditolak dengan alasan: ' . $request->catatan_admin;
+            if ($isShiftLembur && isset($updateData['status_kehadiran']) && $updateData['status_kehadiran'] === Presensi::STATUS_KEHADIRAN_ABSENT) {
+                $pesan .= ' (Shift lembur ditolak, seluruh jam kerja tidak dihitung)';
+            }
+
+            return redirect()->back()->with('success', $pesan); 
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('success', $pesan); 
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
-}
 
     /**
      * Detail presensi (Admin dan User terkait)

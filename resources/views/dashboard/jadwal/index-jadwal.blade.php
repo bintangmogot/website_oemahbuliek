@@ -94,6 +94,10 @@
                                     @endif
                                     <td>
                                         <span class="badge bg-info">{{ $jadwal->shift->nama_shift }}</span>
+                                                                                    <div class="text-muted small">{{ $jadwal->shift->is_shift_lembur == 1 
+                                                ? 'Shift Lembur' 
+                                                : 'Shift Normal' }} 
+                                            </div>
                                     </td>
                                     <td>
                                         {{ $jadwal->tanggal->format('d/m/Y') }}

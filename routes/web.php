@@ -86,6 +86,8 @@ Route::middleware('role:pegawai')->group(function () {
     Route::get('/pegawai/presensi/jadwal/{jadwalShift}', [PresensiController::class, 'show'])->name('pegawai.presensi.show');
     Route::post('/pegawai/presensi/checkin', [PresensiController::class, 'checkIn'])->name('pegawai.presensi.checkin');
     Route::post('/pegawai/presensi/checkout', [PresensiController::class, 'checkOut'])->name('pegawai.presensi.checkout');
+    Route::get('/presensi/riwayat-saya', [PresensiController::class, 'riwayatLengkap'])->name('presensi.riwayat-lengkap');
+
 });
 
 // Routes untuk kedua role
