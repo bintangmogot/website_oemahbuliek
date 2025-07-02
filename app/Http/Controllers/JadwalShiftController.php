@@ -18,23 +18,46 @@ class JadwalShiftController extends Controller
         $this->middleware('auth')->only('index','show');
     }
 
-    public function index()
+    public function index(Request $request) 
     {
-    // Cek role user
-    if (auth()->user()->role === 'admin') {
-        $jadwalShifts = JadwalShift::with(['shift', 'user']) // relasi shift & user
-            ->orderBy('tanggal', 'desc')
-            ->paginate(15);
-    } else {
-        $jadwalShifts = JadwalShift::with(['shift'])
-            ->where('users_id', auth()->id()) // Langsung filter berdasarkan users_id
+        // Query dasar yang akan kita modifikasi dengan filter
+        $query = JadwalShift::with(['shift', 'user'])
+                    ->orderBy('tanggal', 'desc');
 
-            ->where('status', 1)
-            ->orderBy('tanggal', 'desc')
-            ->paginate(10);
-    }
+        // Cek role user
+        if (auth()->user()->role === 'admin') {
+            // --- FILTER UNTUK ADMIN ---
+            if ($request->filled('user_id')) {
+                $query->where('users_id', $request->user_id);
+            }
+            if ($request->filled('shift_id')) {
+                $query->where('shift_id', $request->shift_id);
+            }
+        } else {
+            // --- FILTER UNTUK PEGAWAI (hanya bisa lihat jadwal sendiri) ---
+            $query->where('users_id', auth()->id())->where('status', 1);
+        }
 
-        return view('dashboard.jadwal.index-jadwal', compact('jadwalShifts'));
+        // --- FILTER UMUM (berlaku untuk admin dan pegawai) ---
+        if ($request->filled('start_date')) {
+            $query->whereDate('tanggal', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('tanggal', '<=', $request->end_date);
+        }
+
+        // Ambil data untuk dropdown filter (hanya jika admin)
+        $users = [];
+        $shifts = [];
+        if (auth()->user()->role === 'admin') {
+            $users = User::where('role', 'pegawai')->orderBy('nama_lengkap')->get();
+            $shifts = Shift::orderBy('nama_shift')->get();
+        }
+
+        // Eksekusi query dengan pagination dan pastikan filter tetap ada di URL
+        $jadwalShifts = $query->paginate(15)->appends($request->query());
+
+        return view('dashboard.jadwal.index-jadwal', compact('jadwalShifts', 'users', 'shifts'));
     }
 
     public function create()

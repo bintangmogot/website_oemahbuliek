@@ -22,9 +22,9 @@
             <h3 class="fw-bold mb-0">{{ $title ?? 'Daftar Data' }}</h3>
                 <div class="d-flex">
                 <!-- Filter Button -->
-                    <button class="btn btn-theme primary me-2 py-2 px-3">
+                    {{-- <button class="btn btn-theme primary me-2 py-2 px-3">
                         <i class="bi bi-funnel" style="font-size: 1.2rem" ></i>
-                    </button>
+                    </button> --}}
                         @if(Route::currentRouteName() === 'shift.index')
                         <a href={{ route('jadwal-shift.pilih-shift') }} class="btn btn-success me-2">
                         <i class="fas fa-clock"></i> Pilih Shift Detail

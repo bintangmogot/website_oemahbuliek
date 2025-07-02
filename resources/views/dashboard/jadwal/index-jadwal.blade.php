@@ -16,17 +16,61 @@
                         @endif
                     </h3>
                     <div class="d-flex gap-3">
-                    <!-- Filter Button -->
-                    <button class="btn btn-theme primary me-2 py-2 px-3">
-                        <i class="bi bi-funnel" style="font-size: 1.2rem" ></i>
+                    <button class="btn btn-theme primary me-2 py-2 px-3" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+                        <i class="bi bi-funnel" style="font-size: 1.2rem"></i>
                     </button>
                     @if(auth()->user()->role === 'admin')
                         <a href="{{ route('jadwal-shift.create') }}" class="btn btn-yellow">
                             <i class="fas fa-plus"></i> Tambah Jadwal
                         </a>
                     @endif
-                    </div>
                 </div>
+            </div>
+
+            {{-- Form Filter --}}
+            <div class="collapse mb-4" id="filterCollapse">
+                <div class="card card-body">
+                    <form method="GET" action="{{ route('jadwal-shift.index') }}">
+                        <div class="row g-3 align-items-end">
+                            @if(auth()->user()->role === 'admin')
+                                <div class="col-md-3">
+                                    <label for="user_id" class="form-label">Pegawai</label>
+                                    <select name="user_id" id="user_id" class="form-select">
+                                        <option value="">Semua Pegawai</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->nama_lengkap }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="shift_id" class="form-label">Shift</label>
+                                    <select name="shift_id" id="shift_id" class="form-select">
+                                        <option value="">Semua Shift</option>
+                                        @foreach($shifts as $shift)
+                                            <option value="{{ $shift->id }}" {{ request('shift_id') == $shift->id ? 'selected' : '' }}>
+                                                {{ $shift->nama_shift }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
+                            <div class="col-md-2">
+                                <label for="start_date" class="form-label">Dari Tanggal</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') }}">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="end_date" class="form-label">Sampai Tanggal</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-theme info p-2 w-100">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
                 
                 <div class="card-body">
                     @if(session('success'))
