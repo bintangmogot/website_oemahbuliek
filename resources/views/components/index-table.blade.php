@@ -61,15 +61,23 @@
                 <tbody>
                     @forelse($items as $item)
                         <tr class="bg-white">
-                            @foreach($columns as $column)
-                                @php
-                                    $field = $column['field'];
-                                    $value = data_get($item, $field);
-                                    if ($value instanceof \Carbon\Carbon) {
-                                        $value = $value->format('d-m-Y');
-                                    }
-                                @endphp
-                                <td class="align-middle">{{ $value }}</td>
+                                                        @foreach($columns as $column)
+                                <td class="align-middle">
+                                    @if(isset($column['custom']))
+                                        {{-- Jika ada fungsi 'custom', jalankan dan render HTML-nya --}}
+                                        {!! $column['custom']($item) !!}
+                                    @else
+                                        {{-- Jika tidak, gunakan logic 'field' yang lama --}}
+                                        @php
+                                            $field = $column['field'];
+                                            $value = data_get($item, $field);
+                                            if ($value instanceof \Carbon\Carbon) {
+                                                $value = $value->format('d-m-Y');
+                                            }
+                                        @endphp
+                                        {{ $value }}
+                                    @endif
+                                </td>
                             @endforeach
 
                             @if($showActions)

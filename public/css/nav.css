@@ -28,6 +28,20 @@
   transition: all 0.3s ease;
 }
 
+.divider {
+  border-top: 1px solid #ddd;
+  margin: 0.1rem 0;
+}
+
+.sidebar-menu .menu-header {
+    padding: 15px 20px 5px 20px;
+    font-size: 0.75rem;
+    color: var(--warning-color);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
 .sidebar-overlay.active {
   opacity: 1;
   visibility: visible;

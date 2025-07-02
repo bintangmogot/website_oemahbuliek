@@ -12,6 +12,13 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\PengaturanGajiController;
 use App\Http\Controllers\GajiLemburController;
 use App\Http\Controllers\GajiPokokController;
+use App\Http\Controllers\BahanBakuController;
+use App\Http\Controllers\RiwayatStokController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\DashboardController;
+
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -30,18 +37,21 @@ Route::post('logout', [LoginController::class,'logout'])
     ->middleware('auth')
     ->name('logout');
 
-
-
 // Dashboard (setelah login, redirect ke view sesuai role)
-Route::middleware('auth')->get('dashboard', function () {
-    $user = Auth::user();
-    return $user->role === 'admin'
-        ? view('dashboard.admin')
-        : view('dashboard.pegawai');
-        })->name('dashboard');
+// Route::middleware('auth')->get('dashboard', function () {
+//     $user = Auth::user();
+//     return $user->role === 'admin'
+//         ? view('dashboard.admin')
+//         : view('dashboard.pegawai');
+//         })->name('dashboard');
 
 // Semua route di bawah ini sudah di‑prefix dashboard
-Route::prefix('dashboard')->middleware('auth')->group(function () {        
+Route::prefix('dashboard')->middleware('auth')->group(function () {    
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+// NOTIFIKASI
+    Route::get('/messages', [NotificationController::class, 'index'])->name('notifications.index');
+
 // TABEL USERS
 // CRUD Users (termasuk data pegawai)
     Route::middleware('role:admin')->group(function(){
@@ -57,6 +67,24 @@ Route::prefix('dashboard')->middleware('auth')->group(function () {
 // Profil (bisa diakses semua yang sudah login)
 Route::middleware('role:admin|pegawai')->name('profile.')->group(function () {
         Route::get('profile', [UserController::class, 'showSelf'])->name('me');
+    });
+
+    // --- MODUL INVENTARIS ---
+
+    // CRUD Bahan Baku (Admin bisa semua, Pegawai tidak bisa hapus)
+    Route::middleware('role:admin|pegawai')->group(function() {
+        Route::resource('bahan-baku', BahanBakuController::class)->except(['destroy']);
+    });
+    Route::middleware('role:admin')->group(function() {
+        Route::delete('bahan-baku/{bahan_baku}', [BahanBakuController::class, 'destroy'])->name('bahan-baku.destroy');
+    });
+
+            Route::post('riwayat-stok', [RiwayatStokController::class, 'store'])->name('riwayat-stok.store');
+
+    // Riwayat Stok (bisa diakses semua yang sudah login)
+    Route::middleware('role:admin|pegawai')->group(function() {
+        Route::get('riwayat-stok', [RiwayatStokController::class, 'index'])->name('riwayat-stok.index');
+        Route::get('riwayat-stok/create', [RiwayatStokController::class, 'create'])->name('riwayat-stok.create');
     });
 
 
@@ -191,6 +219,17 @@ Route::middleware('role:admin|pegawai')->name('shift.')->group(function () {
         
         // Detail gaji pokok sendiri
         Route::get('/detail/{gajiPokok}', [GajiPokokController::class, 'pegawaiDetail'])->name('detail');
+    });
+
+
+// --- MODUL LAPORAN (Hanya Admin) ---
+    Route::middleware('role:admin')->name('laporan.')->prefix('laporan')->group(function() {
+        Route::get('/kerugian-bahan-baku', [LaporanController::class, 'kerugianBahanBaku'])->name('kerugian');
+        Route::get('/penggunaan-bahan', [LaporanController::class, 'penggunaanBahan'])->name('penggunaan');
+        Route::get('/stok-mati', [LaporanController::class, 'stokMati'])->name('stok-mati');
+        Route::get('/penerimaan-bahan', [LaporanController::class, 'penerimaanBahan'])->name('penerimaan');
+        
+        // tambahkan laporan lainnya di sini
     });
 
 });
