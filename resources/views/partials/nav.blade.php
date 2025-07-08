@@ -78,10 +78,10 @@
                     <i class="fas fa-chart-line"></i><span>Kerugian Bahan Rusak</span>
                 </a>
                 <a href="{{ route('laporan.penggunaan') }}" class="menu-item {{ request()->is('dashboard/laporan/penggunaan-bahan*') ? 'active' : '' }}">
-                    <i class="fas fa-rocket"></i><span>Bahan Terlaris</span>
+                    <i class="fas fa-rocket"></i><span>Bahan Paling Dibutuhkan</span>
                 </a>
                 <a href="{{ route('laporan.stok-mati') }}" class="menu-item {{ request()->is('dashboard/laporan/stok-mati*') ? 'active' : '' }}">
-                    <i class="fas fa-bed"></i><span>Stok Mati</span>
+                    <i class="fas fa-bed"></i><span>Stok Belum Terpakai</span>
                 </a>
                 <a href="{{ route('laporan.penerimaan') }}" class="menu-item {{ request()->is('dashboard/laporan/penerimaan-bahan*') ? 'active' : '' }}">
                     <i class="fas fa-truck-loading"></i><span>Stok Masuk Terbanyak</span>
@@ -197,18 +197,14 @@
         </button>
         
         {{-- Page Title --}}
-        <h4 class="page-title">@yield('page-title', 'Dashboard')</h4>
+        <h4 class="page-title">@yield('title', 'Dashboard')</h4>
         
         {{-- Right Side Actions --}}
         <div class="navbar-actions">
             <div class="user-info">
                 <span class="user-name">{{ auth()->user()->nama_lengkap }}</span>
             </div>
-            
-            {{-- Settings Button --}}
-            <button class="settings-btn">
-                <i class="fas fa-cog"></i>
-            </button>
+        
         </div>
     </div>
 </nav>

@@ -3,6 +3,7 @@
 
 @section('content')
 <div class="container p-4 my-5 bg-white rounded-4">
+<x-session-status/>
     {{-- JUDUL --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold">Selamat Datang, {{ auth()->user()->nama_lengkap ?? 'Pengguna' }}!</h3>
@@ -137,50 +138,59 @@
     {{-- TAMPILAN KHUSUS UNTUK PEGAWAI --}}
     {{-- ============================================= --}}
     @else
-        <div class="row g-4">
-            <div class="col-lg-7">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header fw-bold"><i class="fas fa-calendar-check me-2"></i>Jadwal Anda Hari Ini</div>
-                    <div class="card-body text-center d-flex flex-column justify-content-center">
-                        @if($jadwalHariIni)
-                            <h4 class="fw-bold">{{ $jadwalHariIni->shift->nama_shift }}</h4>
-                            <p class="text-muted fs-5">{{ \Carbon\Carbon::parse($jadwalHariIni->shift->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwalHariIni->shift->jam_selesai)->format('H:i') }}</p>
-                            @if($jadwalHariIni->shift->is_shift_lembur)<p><span class="badge bg-info fs-6">Shift Lembur</span></p>@endif
-                            <a href="{{ route('pegawai.presensi.show', $jadwalHariIni->id) }}" class="btn btn-theme info mt-3"><i class="fas fa-fingerprint"></i> Lakukan Presensi</a>
-                        @else
-                            <p class="text-muted fs-5">Anda tidak memiliki jadwal kerja hari ini.</p><p>Selamat beristirahat! 😊</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header fw-bold"><i class="fas fa-calendar-alt me-2"></i>Jadwal Berikutnya</div>
-                    <div class="card-body">
-                        @if($jadwalBerikutnya)
-                            <p><strong>{{ $jadwalBerikutnya->tanggal->translatedFormat('l, d F Y') }}</strong></p>
-                            <p>{{ $jadwalBerikutnya->shift->nama_shift }} ({{ \Carbon\Carbon::parse($jadwalBerikutnya->shift->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwalBerikutnya->shift->jam_selesai)->format('H:i') }})</p>
-                        @else
-                            <p class="text-muted">Belum ada jadwal berikutnya yang diatur.</p>
-                        @endif
-                        <a href="{{ route('pegawai.presensi.index') }}" class="text-dark">Lihat Semua Jadwal</a>
-                    </div>
-                </div>
-                <div class="card shadow-sm border-0">
-                    <div class="card-header fw-bold"><i class="fas fa-wallet me-2"></i>Ringkasan Gaji Anda</div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Gaji Pokok Belum Dibayar
-                            <span class="badge bg-danger rounded-pill">Rp {{ number_format($gajiPokokBelumDibayar, 0, ',', '.') }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Gaji Lembur Belum Dibayar
-                            <span class="badge bg-danger rounded-pill">Rp {{ number_format($gajiLemburBelumDibayar, 0, ',', '.') }}</span>
-                        </li>
-                    </ul>
+    <div class="row g-4">
+        {{-- Kolom Kiri: Jadwal Aktif --}}
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header fw-bold"><i class="fas fa-calendar-check me-2"></i>Jadwal Aktif Hari Ini</div>
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    @if($jadwalAktifHariIni)
+                        <h4 class="fw-bold">{{ $jadwalAktifHariIni->shift->nama_shift }}</h4>
+                        <p class="text-muted fs-5">{{ \Carbon\Carbon::parse($jadwalAktifHariIni->shift->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwalAktifHariIni->shift->jam_selesai)->format('H:i') }}</p>
+                        @if($jadwalAktifHariIni->shift->is_shift_lembur)<p><span class="badge bg-info fs-6">Shift Lembur</span></p>@endif
+                        <a href="{{ route('pegawai.presensi.show', $jadwalAktifHariIni->id) }}" class="btn btn-theme info mt-3"><i class="fas fa-fingerprint"></i> Lakukan Presensi</a>
+                    @else
+                        <p class="text-muted fs-5">Tidak ada jadwal kerja aktif untuk hari ini.</p><p>Selamat beristirahat! 😊</p>
+                    @endif
                 </div>
             </div>
         </div>
+
+        {{-- Kolom Kanan: Jadwal Berikutnya & Gaji --}}
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header fw-bold"><i class="fas fa-calendar-alt me-2"></i>Jadwal Berikutnya</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        @forelse($semuaJadwalBerikutnya as $jadwal)
+                            <li class="list-group-item">
+                                <p class="mb-1"><strong>{{ $jadwal->tanggal->translatedFormat('l, d F Y') }}</strong></p>
+                                <p class="text-muted mb-0">{{ $jadwal->shift->nama_shift }} ({{ \Carbon\Carbon::parse($jadwal->shift->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->shift->jam_selesai)->format('H:i') }})</p>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-muted">Belum ada jadwal berikutnya yang diatur.</li>
+                        @endforelse
+                    </ul>
+                </div>
+                 <div class="card-footer">
+                     <a href="{{ route('pegawai.presensi.index') }}" class="text-dark">Lihat Semua Jadwal</a>
+                 </div>
+            </div>
+            <div class="card shadow-sm border-0">
+                <div class="card-header fw-bold"><i class="fas fa-wallet me-2"></i>Ringkasan Gaji Anda</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Gaji Pokok Belum Dibayar
+                        <span class="badge bg-danger rounded-pill">Rp {{ number_format($gajiPokokBelumDibayar, 0, ',', '.') }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Gaji Lembur Belum Dibayar
+                        <span class="badge bg-danger rounded-pill">Rp {{ number_format($gajiLemburBelumDibayar, 0, ',', '.') }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
         <div style="height: 20px;"></div>
 

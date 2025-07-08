@@ -3,6 +3,11 @@
 
 @section('content')
 <div class="container pt-5">
+@if (session('status'))
+    <div class="alert alert-success" role="alert">
+        {{ session('status') }}
+    </div>
+@endif
     <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h3 class="fw-bold mb-0">📦 Filter Bahan Baku</h3>
@@ -57,7 +62,7 @@
     :routes="[
         'show' => 'bahan-baku.show',
         'edit' => 'bahan-baku.edit',
-        'destroy' => 'bahan-baku.destroy',
+        (auth()->user()->role === 'admin' ? ['destroy' => 'bahan-baku.destroy'] : []),
     ]"
     routeKey="bahan_baku"
   />

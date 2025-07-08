@@ -114,6 +114,13 @@ class LaporanController extends Controller
         // 2. Cari bahan baku yang TIDAK ADA di daftar ID di atas, dan masih punya stok
         $stokMati = BahanBaku::whereNotIn('id', $bahanDigunakanIds)
             ->where('stok_terkini', '>', 0) // Hanya tampilkan yang masih ada stoknya
+        // subquery untuk mengambil tanggal penggunaan terakhir
+        ->addSelect(['terakhir_digunakan' => RiwayatStok::select('tanggal')
+            ->whereColumn('bahan_baku_id', 'bahan_baku.id')
+            ->where('tipe_mutasi', 'produksi')
+            ->latest('tanggal')
+            ->limit(1)
+        ])
             ->orderBy('nama')
             ->paginate(20);
 

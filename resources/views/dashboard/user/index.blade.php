@@ -2,6 +2,7 @@
 @section('title', 'Data User')
 
 @section('content')
+<x-session-status/>
   <x-index-table
     title="Daftar User"
     createRoute="user.create"

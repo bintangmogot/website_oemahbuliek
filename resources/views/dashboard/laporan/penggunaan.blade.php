@@ -6,7 +6,7 @@
     <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white">
         
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-3 card-header-theme pb-3">
-            <h3 class="fw-bold mb-0">🚀 Laporan Penggunaan Bahan (Terlaris)</h3>
+            <h3 class="fw-bold mb-0">🚀 Laporan Bahan Paling dibutuhkan</h3>
             <button class="btn btn-theme primary py-2 px-3" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
                 <i class="bi bi-funnel"></i> Filter Tanggal
             </button>

@@ -46,7 +46,7 @@ class UserController extends Controller
             'tgl_masuk'    => 'required|date',
             'no_hp'        => 'required|string|max:15',
             'alamat'       => 'nullable|string',
-            'foto_profil'  => 'nullable|image|max:2048',
+            'foto_profil'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Tangani upload file jika ada
@@ -79,7 +79,7 @@ class UserController extends Controller
             'tgl_masuk'    => 'required|date',
             'no_hp'        => 'required|string|max:15',
             'alamat'       => 'nullable|string',
-            'foto_profil'  => 'nullable|image|max:2048',
+            'foto_profil'  => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
         
         if (!empty($data['password'])) {

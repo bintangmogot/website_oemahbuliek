@@ -46,11 +46,55 @@ class DashboardController extends Controller
         } else {
             // --- DATA UNTUK PEGAWAI ---
             $userId = $user->id;
-            $viewData['jadwalHariIni'] = JadwalShift::with('shift')->where('users_id', $userId)->whereDate('tanggal', today())->first();
-            if (!empty($viewData['jadwalHariIni'])) {
-                $viewData['presensiHariIni'] = Presensi::where('jadwal_shift_id', $viewData['jadwalHariIni']->id)->first();
-            }
-            $viewData['jadwalBerikutnya'] = JadwalShift::with('shift')->where('users_id', $userId)->where('tanggal', '>', today())->orderBy('tanggal', 'asc')->first();
+
+        // 1. Cari jadwal aktif hari ini
+        // Ambil semua ID jadwal milik user hari ini
+        $jadwalIdsHariIni = JadwalShift::where('users_id', $userId)
+            ->whereDate('tanggal', today())
+            ->pluck('id');
+
+        // Dari ID di atas, cari mana yang sudah selesai (sudah checkout)
+        $completedJadwalIds = Presensi::whereIn('jadwal_shift_id', $jadwalIdsHariIni)
+            ->whereNotNull('jam_keluar')
+            ->pluck('jadwal_shift_id');
+
+        // Cari jadwal aktif dengan urutan berdasarkan JAM SHIFT (yang belum selesai)
+        $viewData['jadwalAktifHariIni'] = JadwalShift::with('shift')
+            // 1. Pilih kolom dari tabel utama untuk menghindari konflik
+            ->select('jadwal_shift.*') 
+            // 2. Gabungkan dengan tabel shift
+            ->join('shift', 'jadwal_shift.shift_id', '=', 'shift.id') 
+            ->where('jadwal_shift.users_id', $userId)
+            ->whereDate('jadwal_shift.tanggal', today())
+            ->whereNotIn('jadwal_shift.id', $completedJadwalIds)
+            // 3. Urutkan berdasarkan jam mulai shift
+            ->orderBy('shift.jam_mulai', 'asc') 
+            ->first();
+
+        // Ambil semua jadwal berikutnya
+        $queryJadwalBerikutnya = JadwalShift::with('shift')
+            ->select('jadwal_shift.*') // Pilih kolom
+            ->join('shift', 'jadwal_shift.shift_id', '=', 'shift.id') // Gabungkan tabel
+            ->where('jadwal_shift.users_id', $userId)
+            ->where('jadwal_shift.tanggal', '>=', today())
+            ->orderBy('jadwal_shift.tanggal', 'asc') // Urutkan berdasarkan tanggal dulu
+            ->orderBy('shift.jam_mulai', 'asc');   // Lalu urutkan berdasarkan jam
+
+        // Buat daftar ID yang harus dikecualikan
+        // Isinya adalah jadwal yang sudah selesai DAN jadwal yang sedang aktif
+        $excludeIds = $completedJadwalIds->toArray();
+        if ($viewData['jadwalAktifHariIni']) {
+            $excludeIds[] = $viewData['jadwalAktifHariIni']->id;
+        }
+
+        // Terapkan filter pengecualian jika ada
+        if (!empty($excludeIds)) {
+            $queryJadwalBerikutnya->whereNotIn('jadwal_shift.id', $excludeIds);
+        }
+
+            $viewData['semuaJadwalBerikutnya'] = $queryJadwalBerikutnya->limit(10)->get();
+
+            // Data Gaji
             $viewData['gajiLemburBelumDibayar'] = GajiLembur::where('users_id', $userId)->where('status_pembayaran', 0)->sum('total_gaji_lembur');
             $viewData['gajiPokokBelumDibayar'] = GajiPokok::where('users_id', $userId)->where('status_pembayaran', GajiPokok::STATUS_UNPAID)->sum('total_gaji_pokok');
         

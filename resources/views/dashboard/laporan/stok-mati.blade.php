@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Laporan Stok Mati')
+@section('title', 'Laporan Sisa Stok (Belum Terpakai)')
 
 @section('content')
 <div class="container py-5">
     <div class="card rounded-4 px-3 py-4 p-sm-3 p-md-4 p-lg-5 bg-white">
         
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-3 card-header-theme pb-3">
-            <h3 class="fw-bold mb-0">🐌 Laporan Stok Mati (Tidak Terpakai)</h3>
+            <h3 class="fw-bold mb-0">🐌 Laporan Sisa Stok (Belum Terpakai)</h3>
             <button class="btn btn-theme primary py-2 px-3" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
                 <i class="bi bi-funnel"></i> Filter Tanggal
             </button>
@@ -15,7 +15,7 @@
         <div class="collapse show mb-4" id="filterCollapse">
             <div class="card card-body">
                 <form method="GET">
-                    <p class="text-muted mb-2">Tampilkan bahan baku yang tidak digunakan sama sekali dari tanggal...</p>
+                    <p class="text-muted mb-2">Tampilkan bahan baku yang belum digunakan sama sekali dari tanggal...</p>
                     <div class="row g-3 align-items-end">
                         <div class="col-md-5">
                             <label class="form-label">Dari Tanggal</label>
@@ -42,6 +42,7 @@
                             <th>Nama Bahan</th>
                             <th>Kategori</th>
                             <th>Stok Terkini</th>
+                            <th>Terakhir Digunakan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -51,11 +52,19 @@
                             <td class="align-middle fw-bold">{{ $item->nama }}</td>
                             <td class="align-middle">{{ $item->kategori }}</td>
                             <td class="align-middle">{{ $item->stok_terkini }} {{ $item->satuan_label }}</td>
+                            <td class="align-middle">
+                                {{-- Tampilkan tanggal jika ada, jika tidak, tampilkan "Belum Pernah" --}}
+                                @if($item->terakhir_digunakan)
+                                    {{ \Carbon\Carbon::parse($item->terakhir_digunakan)->isoFormat('D MMMM YYYY') }}
+                                @else
+                                    <span class="text-muted">Belum Pernah</span>
+                                @endif
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <p class="text-muted">👍 Bagus! Tidak ada stok mati pada periode yang dipilih.</p>
+                            <td colspan="5" class="text-center py-5">
+                                <p class="text-muted">👍 Bagus! Tidak ada sisa stok pada periode yang dipilih.</p>
                             </td>
                         </tr>
                         @endforelse
