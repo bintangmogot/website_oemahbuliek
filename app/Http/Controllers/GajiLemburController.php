@@ -323,11 +323,20 @@ public function laporan(Request $request)
         })
         ->first();
     
+    $statusPembayaranLabel = 'Semua Status'; // Default label
+    if ($statusPembayaran !== null && $statusPembayaran !== '') {
+        $gajiLemburModel = new GajiLembur();
+        $gajiLemburModel->status_pembayaran = $statusPembayaran;
+        // Tidak perlu str_replace jika hanya untuk tampilan di view
+        $statusPembayaranLabel = $gajiLemburModel->status_pembayaran_label; 
+    }
+
     return view('dashboard.gaji-lembur.laporan', compact(
         'laporanPerPegawai', 
         'totalKeseluruhan',
         'tanggalMulai',
-        'tanggalSelesai'
+        'tanggalSelesai',
+        'statusPembayaranLabel'
     ));
 
     }

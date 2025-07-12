@@ -524,7 +524,7 @@ public function adminIndex(Request $request)
             if (in_array($presensi->status_lembur, [
                 Presensi::STATUS_LEMBUR_OVERTIME, 
                 Presensi::STATUS_LEMBUR_SHIFT,
-                Presensi::STATUS_LEMBUR_SHIFT_OVERTIME // <-- Penambahan kondisi
+                Presensi::STATUS_LEMBUR_SHIFT_OVERTIME
             ])) {
                 $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_NO;
                 
@@ -654,9 +654,9 @@ private function recalculateGajiPokok($userId, $periode)
 
     $gajiPokok->update([
         'total_jam_kerja' => $totalJamKerjaDecimal,
-        'total_menit_terlambat' => $totalMenitTerlambat, // Tambahkan field ini
-        'gaji_kotor' => $gajiKotor, // Tambahkan field ini
-        'total_potongan' => $totalPotongan, // Tambahkan field ini
+        'total_menit_terlambat' => $totalMenitTerlambat, 
+        'gaji_kotor' => $gajiKotor, 
+        'total_potongan' => $totalPotongan, 
         'total_gaji_pokok' => max(0, $gajiBersih) // Pastikan tidak minus
     ]);
 }

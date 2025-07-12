@@ -369,6 +369,8 @@ foreach ($allUsers as $user) {
         ]
     );
 
+
+    $statusPembayaran = $request->get('status_pembayaran');
     // Data untuk dropdown filter
     $usersForFilter = User::where('role', 'pegawai')->get();
     $statusOptions = [
@@ -376,13 +378,22 @@ foreach ($allUsers as $user) {
         GajiPokok::STATUS_PAID => 'Sudah Dibayar',
     ];
 
+// Terjemahkan ID status menjadi label
+    // Jika status tidak dipilih (kosong), beri label default 'Semua_Status'
+    $statusPembayaranLabel = 'Semua_Status';
+    if ($statusPembayaran !== null && $statusPembayaran !== '') {
+        // Ambil label dari array, jika tidak ada, gunakan 'Unknown'
+        $statusPembayaranLabel = $statusOptions[$statusPembayaran] ?? 'Unknown';
+    }
+
     return view('dashboard.gaji-pokok.admin.index', compact(
         'gajiPokokData', 
         'usersForFilter', 
         'statusOptions',
         'startDate',
         'endDate',
-        'totalSummary'
+        'totalSummary',
+        'statusPembayaranLabel'
     ));
 }
 
@@ -447,12 +458,21 @@ public function adminGenerated(Request $request)
         ]
     ];
 
+    $statusPembayaran = $request->get('status_pembayaran');
     // Data untuk dropdown filter
     $usersForFilter = User::where('role', 'pegawai')->get();
     $statusOptions = [
         GajiPokok::STATUS_UNPAID => 'Belum Dibayar',
         GajiPokok::STATUS_PAID => 'Sudah Dibayar',
     ];
+
+    // Terjemahkan ID status menjadi label
+    // Jika status tidak dipilih (kosong), beri label default 'Semua_Status'
+    $statusPembayaranLabel = 'Semua_Status';
+    if ($statusPembayaran !== null && $statusPembayaran !== '') {
+        // Ambil label dari array, jika tidak ada, gunakan 'Unknown'
+        $statusPembayaranLabel = $statusOptions[$statusPembayaran] ?? 'Unknown';
+    }
 
     // Ambil daftar bulan periode yang tersedia
         $periodeBulanOptions = GajiPokok::selectRaw('DISTINCT DATE_FORMAT(periode_bulan, "%Y-%m-01") as periode_month')
@@ -473,7 +493,8 @@ public function adminGenerated(Request $request)
         'periodeBulanOptions',
         'startDate',
         'endDate',
-        'totalSummary'
+        'totalSummary',
+        'statusPembayaranLabel'
     ));
 }
 

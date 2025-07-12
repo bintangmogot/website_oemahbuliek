@@ -183,6 +183,22 @@
     color: #111111 !important; /* Ikon juga ikut hitam */
 }
 
+.menu-item.icon-only {
+  width: auto;  
+  color: #222222;
+  padding: 10px;
+  justify-content: center;
+  text-align: center; 
+}
+
+.menu-item.icon-only:hover {
+  color: #fbbf24;
+}
+
+.menu-item.icon-only:active {
+  color: var(--white);
+  background-color: var(--warning-color);
+}
 
 .menu-item i {
   width: 20px;

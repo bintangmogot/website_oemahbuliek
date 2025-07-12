@@ -31,8 +31,8 @@ class RiwayatStokController extends Controller
             $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
         }
 
-        // FIX: Menghapus withQueryString(). Penanganan query string akan dilakukan di view.
-        $riwayatStok = $query->paginate(15);
+        // Ini akan membuat filter tetap ada saat berpindah halaman
+        $riwayatStok = $query->paginate(15)->appends($request->except('page'));
         
         $bahanBakus = BahanBaku::orderBy('nama')->get();
 
@@ -126,8 +126,19 @@ class RiwayatStokController extends Controller
             // Jika ada error lain, kembalikan sebagai JSON
             return response()->json(['message' => 'Terjadi error saat menyimpan data: ' . $e->getMessage()], 500);
         }
+        
+        $bahanBaku->refresh(); // Ambil data terbaru dari DB
 
         // Jika berhasil, kembalikan pesan sukses sebagai JSON
-        return response()->json(['status' => 'success', 'message' => 'Transaksi berhasil dicatat!']);
+        return response()->json(['status' => 'success', 'message' => 'Transaksi berhasil dicatat!',
+        'updatedBahanBaku' => [ // Kirim data terbaru
+        'id' => $bahanBaku->id,
+        'nama' => $bahanBaku->nama,
+        'stok_terkini' => $bahanBaku->stok_terkini,
+        'satuan_label' => $bahanBaku->satuan_label
+    ]
+    ]);
+
+
     }
 }

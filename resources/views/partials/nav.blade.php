@@ -204,7 +204,16 @@
             <div class="user-info">
                 <span class="user-name">{{ auth()->user()->nama_lengkap }}</span>
             </div>
-        
+            <a href="{{ route('notifications.index') }}" class="menu-item icon-only position-relative p-1 px-2 {{ request()->is('dashboard/messages*') ? 'active' : '' }}">
+                <i class="bi bi-bell fs-5"></i>
+                
+                @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger text-white p-1" id="notification-count">
+                        {{ $unreadNotificationsCount }}
+                        <span class="visually-hidden">unread messages</span>
+                    </span>
+                @endif
+            </a>
         </div>
     </div>
 </nav>

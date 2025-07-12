@@ -17,6 +17,9 @@
 
 </head>
 <body class="d-flex flex-column min-vh-100">
+    {{-- Elemen ini tidak terlihat, tetapi berfungsi sebagai wadah untuk notifikasi toast yang muncul --}}
+    <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1055"></div>
+
   @include('partials.nav')
   <main class="flex-fill">@yield('content')</main>
 
@@ -29,41 +32,48 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
   @auth
 <script>
-    // Pastikan Echo sudah diinisialisasi di bootstrap.js
-    window.Echo.private('App.Models.User.{{ auth()->id() }}')
-        .notification((notification) => {
-            console.log(notification); // Untuk debugging
+        // Menunggu seluruh halaman HTML selesai dimuat, baru menjalankan script notifikasi
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pastikan Echo sudah diinisialisasi di bootstrap.js
+            window.Echo.private('App.Models.User.{{ auth()->id() }}')
+                .notification((notification) => {
+                    console.log('Notifikasi baru diterima:', notification); // Untuk debugging
 
-            // 1. Tampilkan Toast Notification
-            // Anda bisa menggunakan library toast seperti Toastr.js atau membuat elemen Bootstrap Toast sendiri
-            const toastContainer = document.getElementById('toast-container'); // Pastikan ada elemen ini di layout Anda
-            const toastHTML = `
-                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div class="toast-header bg-warning">
-                    <strong class="me-auto">${notification.title}</strong>
-                    <small>Baru saja</small>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                  <div class="toast-body">
-                    ${notification.body}
-                    <div class="mt-2 pt-2 border-top">
-                        <a href="${notification.url}" class="btn btn-primary btn-sm">Lihat Detail</a>
-                    </div>
-                  </div>
-                </div>
-            `;
-            toastContainer.innerHTML += toastHTML;
-            const newToast = toastContainer.lastElementChild;
-            new bootstrap.Toast(newToast).show();
+                    // 1. Tampilkan Toast Notification
+                    const toastContainer = document.getElementById('toast-container');
+                    // Tambahkan pengecekan 'if' untuk keamanan
+                    if (toastContainer) {
+                        const toastHTML = `
+                            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                              <div class="toast-header bg-warning text-dark">
+                                <strong class="me-auto">${notification.title || 'Peringatan Baru'}</strong>
+                                <small>Baru saja</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                              </div>
+                              <div class="toast-body">
+                                ${notification.body || 'Anda memiliki notifikasi baru.'}
+                                <div class="mt-2 pt-2 border-top">
+                                    <a href="${notification.url || '#'}" class="btn btn-primary btn-sm">Lihat Detail</a>
+                                </div>
+                              </div>
+                            </div>
+                        `;
+                        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                        const newToast = toastContainer.lastElementChild;
+                        new bootstrap.Toast(newToast).show();
+                    }
 
-
-            // 2. Update angka notifikasi di navbar
-            const notifCountElement = document.getElementById('notification-count'); // Pastikan ada elemen ini di navbar
-            if(notifCountElement) {
-                let currentCount = parseInt(notifCountElement.innerText) || 0;
-                notifCountElement.innerText = currentCount + 1;
-                notifCountElement.style.display = 'inline-block';
-            }
+                    // 2. Update angka notifikasi di navbar
+                    const notifCountElement = document.getElementById('notification-count');
+                    if(notifCountElement) {
+                        let currentCount = parseInt(notifCountElement.innerText) || 0;
+                        currentCount++;
+                        notifCountElement.innerText = currentCount;
+                        if (notifCountElement.style.display === 'none') {
+                            notifCountElement.style.display = 'inline-block';
+                        }
+                    }
+                });
         });
 </script>
 @endauth

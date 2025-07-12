@@ -598,37 +598,76 @@ document.getElementById('modal_gaji_id').value = gajiId;
 
     // Export to CSV function
     function exportToCSV() {
-        const table = document.querySelector('.table');
-        const rows = Array.from(table.querySelectorAll('tr'));
-        
-        let csvContent = '';
-        
-        rows.forEach(row => {
-            const cols = Array.from(row.querySelectorAll('th, td'));
-            const rowData = cols.map(col => {
-                // Clean up the text content
-                let text = col.textContent.trim();
-                // Remove extra whitespace and newlines
-                text = text.replace(/\s+/g, ' ');
-                // Remove currency formatting for numbers
-                if (text.includes('Rp ')) {
+        const table = document.querySelector('.table');        
+    const head = table.querySelector('thead');
+    const body = table.querySelector('tbody');
+    const foot = table.querySelector('tfoot');
+    let csvContent = '';
+
+    // 1. Proses Header
+    if (head) {
+        const headerRow = Array.from(head.querySelectorAll('tr'))[0];
+        const headerCols = Array.from(headerRow.querySelectorAll('th'));
+        // Hapus kolom 'Aksi' dari header
+        const filteredHeader = headerCols.slice(0, headerCols.length - 1); 
+        csvContent += filteredHeader.map(col => `"${col.textContent.trim()}"`).join(',') + '\n';
+    }
+
+    // 2. Proses Body
+    if (body) {
+        const bodyRows = Array.from(body.querySelectorAll('tr'));
+        bodyRows.forEach(row => {
+            const cols = Array.from(row.querySelectorAll('td'));
+            // Hapus kolom 'Aksi' dari body
+            const filteredCols = cols.slice(0, cols.length - 1); 
+            const rowData = filteredCols.map(col => {
+                let text = col.textContent.trim().replace(/\s+/g, ' ');
+                // Membersihkan format Rupiah dan satuan 'jam'
+                if (text.includes('Rp')) {
                     text = text.replace('Rp ', '').replace(/\./g, '');
+                } else if (text.includes('jam')) {
+                    text = text.replace(' jam', '');
                 }
                 return `"${text}"`;
             });
+            csvContent += rowData.join(',') + '\n';
+        });
+    }
+    
+    // 3. Proses Footer (dengan perlakuan khusus untuk colspan)
+    if (foot) {
+        const footerRow = Array.from(foot.querySelectorAll('tr'))[0];
+        const footerCols = Array.from(footerRow.querySelectorAll('td'));
+        
+        let footerCsvRow = [];
+        footerCols.forEach(col => {
+            const colspan = parseInt(col.getAttribute('colspan') || '1', 10);
+            let text = col.textContent.trim().replace(/\s+/g, ' ');
             
-            // Skip empty rows and action column
-            if (rowData.length > 1 && !rowData[0].includes('bi-')) {
-                csvContent += rowData.slice(0, -1).join(',') + '\n'; // Remove last column (actions)
+            // Membersihkan format Rupiah dan satuan 'jam'
+            if (text.includes('Rp')) {
+                text = text.replace('Rp ', '').replace(/\./g, '');
+            } else if (text.includes('jam')) {
+                text = text.replace(' jam', '');
+            }
+
+            footerCsvRow.push(`"${text}"`);
+            
+            // Tambahkan sel kosong untuk mengisi sisa colspan
+            for (let i = 1; i < colspan; i++) {
+                footerCsvRow.push('""'); // Tambah string kosong
             }
         });
+
+        csvContent += footerCsvRow.join(',') + '\n';
+    }
         
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         
         link.setAttribute('href', url);
-        link.setAttribute('download', `gaji_pokok_{{ $startDate->format('Y-m-d') }}_{{ $endDate->format('Y-m-d') }}.csv`);
+        link.setAttribute('download', `gaji_pokok_{{ $statusPembayaranLabel }}_{{ $startDate->format('Y-m-d') }}_{{ $endDate->format('Y-m-d') }}.csv`);
         link.style.visibility = 'hidden';
         
         document.body.appendChild(link);

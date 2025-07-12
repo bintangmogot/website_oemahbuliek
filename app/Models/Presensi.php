@@ -26,6 +26,7 @@ class Presensi extends Model
         'jam_keluar',
         'foto_keluar',
         'menit_terlambat',
+        'jam_kerja_efektif',
         'status_kehadiran',
         'status_lembur',
         'status_approval',
@@ -37,6 +38,7 @@ class Presensi extends Model
         'jam_masuk' => 'datetime',
         'jam_keluar' => 'datetime',
         'menit_terlambat' => 'integer',
+        'jam_kerja_efektif' => 'integer',
         'status_kehadiran' => 'integer',
         'status_lembur' => 'integer',
         'status_approval' => 'integer',
@@ -193,25 +195,26 @@ public function calculateEffectiveWorkHours(): int
         return $this->isCheckedIn() && !$this->isCheckedOut();
     }
 
-    // Method untuk menghitung keterlambatan
-    public function calculateLateness(): int
-    {
-        if (!$this->jam_masuk || !$this->jadwalShift || !$this->jadwalShift->shift) {
-            return 0;
-        }
-
-        $jamMasukShift = Carbon::createFromFormat('H:i:s', $this->jadwalShift->shift->jam_mulai, 'Asia/Jakarta');
-        $jamMasukActual = Carbon::parse($this->jam_masuk)->setTimezone('Asia/Jakarta');
-        
-        // Set tanggal yang sama untuk perbandingan
-        $jamMasukShift->setDate($jamMasukActual->year, $jamMasukActual->month, $jamMasukActual->day);
-        
-        if ($jamMasukActual->greaterThan($jamMasukShift)) {
-            return $jamMasukActual->diffInMinutes($jamMasukShift);
-        }
-        
+    // // Method untuk menghitung keterlambatan
+public function calculateLateness(): int
+{
+    if (!$this->jam_masuk || !$this->jadwalShift || !$this->jadwalShift->shift) {
         return 0;
     }
+    
+    $shift = $this->jadwalShift->shift;
+    $jamMasuk = Carbon::parse($this->jam_masuk);
+    $jamMulaiShift = Carbon::parse($this->tgl_presensi . ' ' . $shift->jam_mulai);
+    
+    if ($jamMasuk->greaterThan($jamMulaiShift)) {
+        $totalMenitTerlambat = $jamMasuk->diffInMinutes($jamMulaiShift);
+        $toleransi = $shift->toleransi_terlambat ?? 15;
+        
+        return max(0, $totalMenitTerlambat - $toleransi);
+    }
+    
+    return 0;
+}
 
     // Method untuk menghitung durasi kerja
     public function calculateWorkDuration(): int
@@ -353,23 +356,32 @@ public function getTotalOvertimeMinutes(): int
 
 
 // UNTUK GAJI POKOK
-// Di Model Presensi
-public function getJamKerjaEfektifAttribute(): int
+// ✅ Accessor untuk jam kerja efektif HANYA mengambil data dari database.
+// Nama method diubah agar tidak bentrok, atau Anda bisa gunakan nama lain.
+// Jika Anda sudah menyimpan dalam menit, biarkan saja dan jangan buat accessor.
+public function getJamKerjaEfektifMenitAttribute()
 {
-    return $this->calculateEffectiveWorkHours();
+    // $this->attributes['nama_kolom'] akan mengambil nilai mentah dari database.
+    return $this->attributes['jam_kerja_efektif'];
+}
+
+// Accessor untuk menit_terlambat
+public function getMenitTerlambatAttribute($value)
+{
+    // $value adalah nilai yang sudah Anda simpan tadi (raw diff)
+    $shift     = $this->jadwalShift->shift;
+    $toleransi = $shift->toleransi_terlambat ?? 15;
+
+    // pastikan tidak negatif
+    return max(0, $value - $toleransi);
 }
 
 public function getJamKerjaEfektifFormattedAttribute(): string
 {
-    $durasi = $this->calculateEffectiveWorkHours();
+    $durasi = $this->jam_kerja_efektif; 
     $jam = floor($durasi / 60);
     $menit = $durasi % 60;
     return "{$jam}j {$menit}m";
 }
 
-// Accessor untuk menit_terlambat
-public function getMinuteTerlambatAttribute()
-{
-    return $this->calculateLateness();
-}
 }

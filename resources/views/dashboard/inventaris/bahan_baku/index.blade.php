@@ -19,17 +19,26 @@
             <div class="card card-body">
                 <form method="GET" action="{{ route('bahan-baku.index') }}">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="search" class="form-label">Cari Nama Bahan</label>
                             <input type="text" name="search" id="search" class="form-control" value="{{ request('search') }}" placeholder="Contoh: Bawang, Ayam, Gula...">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label for="kategori" class="form-label">Filter Kategori</label>
                             <select name="kategori" id="kategori" class="form-select">
                                 <option value="">Semua Kategori</option>
                                 <option value="Bahan Makanan" {{ request('kategori') == 'Bahan Makanan' ? 'selected' : '' }}>Bahan Makanan</option>
                                 <option value="Bumbu" {{ request('kategori') == 'Bumbu' ? 'selected' : '' }}>Bumbu</option>
                                 <option value="Bahan Minuman" {{ request('kategori') == 'Bahan Minuman' ? 'selected' : '' }}>Bahan Minuman</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="stok_terkini" class="form-label">Filter Stok</label>
+                            <select name="stok_terkini" id="stok_terkini" class="form-select">
+                                <option value="">Semua Stok</option>
+                                <option value="Tersedia" @selected(request('stok_terkini') == 'Tersedia')>Tersedia</option>
+                                <option value="Hampir Habis" @selected(request('stok_terkini') == 'Hampir Habis')>Hampir Habis</option>
+                                <option value="Habis" @selected(request('stok_terkini') == 'Habis')>Habis</option>
                             </select>
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -59,11 +68,10 @@
     ]"
     :items="$items"
     :showActions="true"
-    :routes="[
+    :routes="array_merge([
         'show' => 'bahan-baku.show',
         'edit' => 'bahan-baku.edit',
-        (auth()->user()->role === 'admin' ? ['destroy' => 'bahan-baku.destroy'] : []),
-    ]"
+    ], auth()->user()->role === 'admin' ? ['destroy' => 'bahan-baku.destroy'] : [])"
     routeKey="bahan_baku"
   />
 @endsection

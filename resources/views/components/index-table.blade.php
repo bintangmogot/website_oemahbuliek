@@ -27,7 +27,7 @@
                     </button> --}}
                         @if(Route::currentRouteName() === 'shift.index')
                         <a href={{ route('jadwal-shift.pilih-shift') }} class="btn btn-success me-2">
-                        <i class="fas fa-clock"></i> Pilih Shift Detail
+                        <i class="fas fa-clock"></i> Pilih Detail Shift
                         </a>
                         @endif
                 <!-- Create Button -->

@@ -4,30 +4,41 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BahanBakuController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = BahanBaku::query();
 
-        // START: Logika Filter dan Pencarian
-        if ($request->filled('search')) {
-            $query->where('nama', 'like', '%' . $request->search . '%');
-        }
+public function index(Request $request)
+{
+    // Mulai dengan satu query builder
+    $query = BahanBaku::query();
 
-        if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
-        }
-        // END: Logika Filter dan Pencarian
+    // Terapkan filter pencarian jika ada
+    $query->when($request->filled('search'), function ($q) use ($request) {
+        return $q->where('nama', 'like', '%' . $request->search . '%');
+    });
 
-        $bahanBakus = $query->paginate(10);
-        
-        // Menggunakan appends() di view akan lebih konsisten
-        // $bahanBakus->appends($request->query());
+    // Terapkan filter kategori jika ada
+    $query->when($request->filled('kategori'), function ($q) use ($request) {
+        return $q->where('kategori', $request->kategori);
+    });
 
-        return view('dashboard.inventaris.bahan_baku.index', ['items' => $bahanBakus]);
-    }
+    // Terapkan filter status stok jika ada, menggunakan Query Scope yang sudah dibuat di model
+    // Nama input di form adalah 'stok_terkini'
+    $query->when($request->filled('stok_terkini'), function ($q) use ($request) {
+        // Memanggil scopeWhereStokLabel()
+        return $q->whereStokLabel($request->stok_terkini);
+    });
+
+    // Lakukan paginasi pada query yang sudah difilter
+    //  menjaga parameter filter saat berpindah halaman
+    $bahanBakus = $query->paginate(10)->appends($request->except('page'));
+    
+    return view('dashboard.inventaris.bahan_baku.index', [
+        'items' => $bahanBakus
+    ]);
+}
 
     public function create()
     {
