@@ -2,6 +2,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
@@ -16,7 +17,7 @@ class StoreUserRequest extends FormRequest
             'nama_lengkap'  => ['required','string','max:255'],
             'jabatan'       => ['required','string','max:50'],
             'tgl_masuk'     => ['required','date'],
-            'no_hp'         => ['required','string','max:15'],
+            'no_hp'         => ['required','string','max:15', 'unique:users,no_hp'],
             'alamat'        => ['nullable','string'],
             'foto_profil'   => ['nullable','image','max:2048'],
         ];

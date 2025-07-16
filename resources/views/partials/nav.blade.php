@@ -125,7 +125,7 @@
 
                 <h6 class="menu-header">Pengaturan</h6>
                 <a href="{{ route('user.index') }}" class="menu-item {{ request()->is('dashboard/user*') ? 'active' : '' }}" >
-                    <i class="fas fa-users-cog"></i><span>Manajemen User</span>
+                    <i class="fas fa-users-cog"></i><span>Pengelolaan Data User</span>
                 </a>
                 <a href="{{ route('shift.index') }}" class="menu-item {{ request()->is('dashboard/shift*') ? 'active' : '' }}" >
                     <i class="fas fa-clock"></i><span>Shift</span>

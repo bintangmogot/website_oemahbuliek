@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 class JadwalShiftController extends Controller
@@ -77,7 +78,24 @@ class JadwalShiftController extends Controller
             'user_ids' => 'required|array|min:1',
             'user_ids.*' => 'required|exists:users,id',
             'shift_id' => 'required|exists:shift,id',
-            'tanggal' => 'required|date|after_or_equal:today',
+            'tanggal' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                // Custom validation untuk memeriksa jam shift
+                function ($attribute, $value, $fail) use ($request) {
+                    $shift = Shift::find($request->shift_id);
+                    if ($shift) {
+                        // Gabungkan tanggal dari input dengan jam mulai dari shift
+                        $scheduleStartTime = Carbon::parse($value . ' ' . $shift->jam_mulai);
+    
+                        // Cek apakah waktu mulai jadwal sudah lewat dari waktu sekarang
+                        if ($scheduleStartTime->isPast()) {
+                            $fail('Tidak dapat membuat jadwal untuk shift yang waktunya sudah lewat.');
+                        }
+                    }
+                },
+            ],
             'status' => 'nullable|in:0,1',
         ]);
 
@@ -142,7 +160,24 @@ class JadwalShiftController extends Controller
         $request->validate([
             'users_id' => 'required|exists:users,id',
             'shift_id' => 'required|exists:shift,id',
-            'tanggal' => 'required|date',
+            'tanggal' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+                // Custom validation untuk memeriksa jam shift
+                function ($attribute, $value, $fail) use ($request) {
+                    $shift = Shift::find($request->shift_id);
+                    if ($shift) {
+                        // Gabungkan tanggal dari input dengan jam mulai dari shift
+                        $scheduleStartTime = Carbon::parse($value . ' ' . $shift->jam_mulai);
+    
+                        // Cek apakah waktu mulai jadwal sudah lewat dari waktu sekarang
+                        if ($scheduleStartTime->isPast()) {
+                            $fail('Tidak dapat membuat jadwal untuk shift yang waktunya sudah lewat.');
+                        }
+                    }
+                },
+            ],
             'status' => 'nullable|in:0,1,2',
         ]);
 

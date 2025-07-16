@@ -93,18 +93,22 @@ class Presensi extends Model
     }
 
 // Method untuk menghitung jam kerja efektif (check in sampai check out dalam batas shift)
-public function calculateEffectiveWorkHours(): int
-    {
-        // Gunakan jam keluar dari properti model, yang sudah di-set dari controller.
-        if (!$this->jam_masuk || !$this->jam_keluar || !$this->jadwalShift || !$this->jadwalShift->shift) {
-            return 0;
-        }
+public function calculateEffectiveWorkHours(Carbon $jamKeluarInput = null): int
+{
+    // Gunakan jam keluar dari argumen, atau dari properti jika argumen tidak ada.
+    $jamKeluarUntukKalkulasi = $jamKeluarInput ?? $this->jam_keluar;
 
-        $shift = $this->jadwalShift->shift;
-        $jamMasukPegawai = Carbon::parse($this->jam_masuk);
-        $jamKeluarPegawai = Carbon::parse($this->jam_keluar);
+    // Ganti kondisi if, sekarang cek variabel baru
+    if (!$this->jam_masuk || !$jamKeluarUntukKalkulasi || !$this->jadwalShift || !$this->jadwalShift->shift) {
+        return 0;
+    }
+
+    $shift = $this->jadwalShift->shift;
+    $jamMasukPegawai = Carbon::parse($this->jam_masuk);
+    // Gunakan variabel baru untuk kalkulasi
+    $jamKeluarPegawai = Carbon::parse($jamKeluarUntukKalkulasi);
         
-        // PERBAIKAN ERROR: Ambil hanya bagian tanggal dari tgl_presensi untuk menghindari error parsing.
+        // Ambil hanya bagian tanggal dari tgl_presensi untuk menghindari error parsing.
         $tanggalPresensi = Carbon::parse($this->tgl_presensi)->toDateString();
         
         // Jam shift
@@ -113,11 +117,7 @@ public function calculateEffectiveWorkHours(): int
         
         // Jika shift melewati tengah malam (misal: 22:00 - 06:00)
         if ($jamSelesaiShift->lessThan($jamMulaiShift)) {
-            // Jika jam keluar pegawai berada di hari yang sama dengan jam masuk (artinya belum lewat tengah malam),
-            // maka jam selesai shift harus di hari berikutnya.
-            if ($jamKeluarPegawai->isSameDay($jamMasukPegawai)) {
-                 $jamSelesaiShift->addDay();
-            }
+            $jamSelesaiShift->addDay();
         }
         
         // Batas jam kerja untuk gaji pokok:
@@ -176,17 +176,39 @@ public function calculateEffectiveWorkHours(): int
     }
 
     // Method untuk mengecek apakah bisa check in (sesuai jadwal)
+    /**
+     * Menentukan apakah pegawai bisa melakukan check-in.
+     * Aturan: Hanya bisa check-in selama durasi shift pada hari presensi.
+     */
     public function canCheckIn(): bool
     {
-        if (!$this->jadwalShift) {
+        // Memastikan pegawai belum check-in
+        if ($this->jam_masuk) {
             return false;
         }
 
-        $today = Carbon::now('Asia/Jakarta')->startOfDay();
-        $jadwalTanggal = Carbon::parse($this->jadwalShift->tanggal)->startOfDay();
+        // Sistemnya mengambil data shift
+        $shift = $this->jadwalShift->shift;
+        if (!$shift) {
+            return false; // Tidak ada shift, tidak bisa check-in
+        }
+
+        // di sini ditentukan waktu mulai dan selesai shift
+        $now = Carbon::now();
+        $tanggalPresensi = Carbon::parse($this->tgl_presensi)->toDateString();
+        $jamMulaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_mulai);
+        $jamSelesaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_selesai);
+
+        // Handle shift yang melewati tengah malam, dia bakal tambahkan hari baru kalau shift nya lewat hari
+        if ($jamSelesaiShift->lessThan($jamMulaiShift)) {
+            $jamSelesaiShift->addDay();
+        }
         
-        // Hanya bisa check in pada hari H
-        return $today->isSameDay($jadwalTanggal) && !$this->isCheckedIn();
+        // Buat waktu paling awal untuk check-in (1 jam sebelum shift dimulai)
+        $waktuMulaiCheckIn = $jamMulaiShift->copy()->subHour();
+
+        // Cek apakah waktu sekarang berada di antara jam mulai dan selesai shift
+        return $now->between($waktuMulaiCheckIn, $jamSelesaiShift);
     }
 
     // Method untuk mengecek apakah bisa check out

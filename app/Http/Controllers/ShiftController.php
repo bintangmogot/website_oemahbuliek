@@ -6,9 +6,12 @@ use App\Models\Shift;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreShiftRequest;
 use App\Http\Requests\UpdateShiftRequest;
+use App\Http\Traits\HandlesQueryExceptions;
 
 class ShiftController extends Controller
 {
+    use HandlesQueryExceptions; // Gunakan Trait di dalam kelas
+
     public function __construct()
     {
         $this->middleware(['auth','role:admin']);
@@ -51,6 +54,13 @@ class ShiftController extends Controller
 
     public function destroy(Shift $shift)
     {
+        // 3. Panggil fungsi dari Trait
+        $deleteResponse = $this->safeDelete($shift, 'shift.index');
+
+        // Jika $deleteResponse tidak null, berarti terjadi error dan redirect
+        if ($deleteResponse) {
+            return $deleteResponse;
+        }
         $shift->delete();
         return redirect()
                ->route('shift.index')

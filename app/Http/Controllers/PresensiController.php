@@ -111,7 +111,7 @@ public function adminIndex(Request $request)
             ->where('status', 1) // Hanya jadwal aktif
             ->where('tanggal', '>=', $today)
             ->orderBy('tanggal', 'asc')
-            ->take(10)
+            ->take(15)
             ->get();
 
         // Ambil riwayat presensi (7 hari terakhir)
@@ -315,33 +315,99 @@ public function adminIndex(Request $request)
     /**
      * Check Out
      */
- public function checkOut(Request $request)
-    {
-        $request->validate([
-            'foto' => 'required|image|max:2048',
-            'presensi_id' => 'required|exists:presensi,id'
-        ]);
+// Di dalam Controller Anda
 
-        $presensi = Presensi::with(['jadwalShift.shift'])->findOrFail($request->presensi_id);
-        
-        if ($presensi->users_id !== Auth::id()) {
-            return response()->json(['error' => 'Tidak memiliki akses'], 403);
-        }
+// Di dalam PresensiController.php
 
-        if (!$presensi->canCheckOut()) {
-            return response()->json(['error' => 'Tidak dapat check out. Pastikan sudah check in terlebih dahulu'], 400);
-        }
+public function checkOut(Request $request)
+{
+    $request->validate([
+        'foto' => 'required|image|max:2048',
+        'presensi_id' => 'required|exists:presensi,id'
+    ]);
 
-        try {
-            DB::beginTransaction();
+    $presensi = Presensi::with(['jadwalShift.shift'])->findOrFail($request->presensi_id);
+    
+    if ($presensi->users_id !== Auth::id()) {
+        return response()->json(['error' => 'Tidak memiliki akses'], 403);
+    }
 
-            $foto = $request->file('foto');
-            $namaFoto = 'checkout_' . $presensi->users_id . '_' . date('Y-m-d_H-i-s') . '.' . $foto->getClientOriginalExtension();
-            $fotoPath = $foto->storeAs('presensi', $namaFoto, 'public');
+    if (!$presensi->canCheckOut()) {
+        return response()->json(['error' => 'Tidak dapat check out. Pastikan sudah check in terlebih dahulu'], 400);
+    }
 
-            $jamKeluar = Carbon::now();
-            $shift = $presensi->jadwalShift->shift;
+    try {
+        DB::beginTransaction();
+
+        $foto = $request->file('foto');
+        $namaFoto = 'checkout_' . $presensi->users_id . '_' . date('Y-m-d_H-i-s') . '.' . $foto->getClientOriginalExtension();
+        $fotoPath = $foto->storeAs('presensi', $namaFoto, 'public');
+
+        $jamKeluar = Carbon::now();
+        $shift = $presensi->jadwalShift->shift;
+        $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
+
+        $updateData = [
+            'jam_keluar' => $jamKeluar,
+            'foto_keluar' => $fotoPath,
+            'status_approval' => Presensi::STATUS_APPROVAL_PENDING,
+        ];
+
+        if ($isShiftLembur) {
+            // =====================================================================
+            // --- LOGIKA UNTUK SHIFT LEMBUR (YANG DIPERBAIKI DAN DILENGKAPI) ---
+            // =====================================================================
+
+            // 1. Hitung dulu jam kerja efektif sesuai durasi shift lembur
+            $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours($jamKeluar);
+            $updateData['jam_kerja_efektif'] = $jamKerjaEfektifMenit;
             
+            // 2. Siapkan data waktu shift untuk mengecek OVERTIME TAMBAHAN
+            $tanggalPresensi = Carbon::parse($presensi->tgl_presensi)->toDateString();
+            $jamMulaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_mulai);
+            $jamSelesaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_selesai);
+            if ($jamSelesaiShift->lessThan($jamMulaiShift)) {
+                $jamSelesaiShift->addDay();
+            }
+
+            // 3. Cek apakah ada overtime tambahan (bekerja lebih lama dari jam selesai shift lembur)
+            $menitOvertimeTambahan = 0;
+            if ($jamKeluar->greaterThan($jamSelesaiShift)) {
+                $totalMenitOvertimeRaw = $jamKeluar->diffInMinutes($jamSelesaiShift);
+                $batasLemburMin = $shift->batas_lembur_min ?? 30;
+                $menitOvertimeTambahan = max(0, $totalMenitOvertimeRaw - $batasLemburMin);
+            }
+
+            // 4. Tentukan status, total jam, dan keterangan berdasarkan ada/tidaknya overtime tambahan
+            if ($menitOvertimeTambahan > 0) {
+                // Kasus: Shift Lembur + Overtime Tambahan
+                $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT_OVERTIME;
+                $totalMenitLembur = $jamKerjaEfektifMenit + $menitOvertimeTambahan;
+                $jamLemburTotal = round($totalMenitLembur / 60, 2);
+                $keteranganLembur = "Shift Lembur ({$jamKerjaEfektifMenit} mnt) + Overtime ({$menitOvertimeTambahan} mnt).";
+                $tipeLembur = 'shift_lembur_overtime';
+            } else {
+                // Kasus: Hanya Shift Lembur biasa (tanpa overtime tambahan)
+                $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT;
+                $totalMenitLembur = $jamKerjaEfektifMenit;
+                $jamLemburTotal = round($totalMenitLembur / 60, 2);
+                $keteranganLembur = "Shift lembur. Total jam kerja: {$jamLemburTotal} jam.";
+                $tipeLembur = 'shift_lembur';
+            }
+
+            // 5. Update data presensi
+            $presensi->update($updateData);
+
+            // 6. Buat atau update record GajiLembur
+            if ($jamLemburTotal > 0) {
+                GajiLembur::updateOrCreate(
+                    ['presensi_id' => $presensi->id],
+                    ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => $tipeLembur, 'total_jam_lembur' => $jamLemburTotal, 'keterangan_lembur' => $keteranganLembur]
+                );
+            }
+
+        } else {
+            // --- LOGIKA UNTUK SHIFT NORMAL (SUDAH BENAR DAN TETAP SAMA) ---
             $tanggalPresensi = Carbon::parse($presensi->tgl_presensi)->toDateString();
             $jamMulaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_mulai);
             $jamSelesaiShift = Carbon::parse($tanggalPresensi . ' ' . $shift->jam_selesai);
@@ -350,83 +416,53 @@ public function adminIndex(Request $request)
                 $jamSelesaiShift->addDay();
             }
 
-            $presensi->jam_keluar = $jamKeluar;
-            $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours();
+            $jamMaksimalOvertime = $jamSelesaiShift->copy()->addHours(3);
+            
+            $jamKerjaEfektifMenit = 0;
+            $menitOvertime = 0;
+            $statusLembur = Presensi::STATUS_LEMBUR_NO;
 
-            $updateData = [
-                'jam_keluar' => $jamKeluar,
-                'foto_keluar' => $fotoPath,
-                'status_approval' => Presensi::STATUS_APPROVAL_PENDING,
-                'jam_kerja_efektif' => $jamKerjaEfektifMenit
-            ];
-
-            $isShiftLembur = $shift && $shift->is_shift_lembur == 1;
-
-            if ($isShiftLembur) {
-                $menitOvertimeTambahan = 0;
-
-                // Cek dulu apakah ada waktu di luar jam shift
-                if ($jamKeluar->greaterThan($jamSelesaiShift)) {
-                    // Hitung overtime mentah
-                    $totalMenitOvertimeRaw = $jamKeluar->diffInMinutes($jamSelesaiShift);
-                    // Ambil batas minimum
-                    $batasLemburMin = $shift->batas_lembur_min ?? 30;
-                    // Hitung overtime yang valid setelah dikurangi batas minimum
-                    $menitOvertimeTambahan = max(0, $totalMenitOvertimeRaw - $batasLemburMin);
-                }
-
-                // Tentukan status dan perhitungan berdasarkan ada atau tidaknya overtime tambahan yang valid
-                if ($menitOvertimeTambahan > 0) {
-                    // Kasus: Shift Lembur + Overtime (VALID)
-                    $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT_OVERTIME;
-                    $totalMenitLembur = $jamKerjaEfektifMenit + $menitOvertimeTambahan;
-                    $jamLemburTotal = round($totalMenitLembur / 60, 2);
-                    $keteranganLembur = "Shift Lembur ({$jamKerjaEfektifMenit} mnt) + Overtime ({$menitOvertimeTambahan} mnt). Total: {$jamLemburTotal} jam.";
-                    $tipeLembur = 'shift_lembur_overtime';
-                } else {
-                    // Kasus: Shift Lembur Biasa (karena tidak ada overtime atau overtime tidak memenuhi batas minimum)
-                    $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_SHIFT;
-                    $jamLemburTotal = round($jamKerjaEfektifMenit / 60, 2);
-                    $keteranganLembur = "Shift lembur. Total jam kerja efektif: {$jamLemburTotal} jam.";
-                    $tipeLembur = 'shift_lembur';
-                }
-
-                // Simpan ke GajiLembur jika ada jam lembur
-                if ($jamLemburTotal > 0) {
-                    GajiLembur::updateOrCreate(
-                        ['presensi_id' => $presensi->id],
-                        ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => $tipeLembur, 'total_jam_lembur' => $jamLemburTotal, 'keterangan_lembur' => $keteranganLembur]
-                    );
-                }
+            if ($jamKeluar->greaterThan($jamMaksimalOvertime)) {
+                // PENALTI: Overtime hangus
+                $menitOvertime = 0;
+                $statusLembur = Presensi::STATUS_LEMBUR_NO;
+                $presensi->jam_keluar = $jamSelesaiShift;
+                $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours($jamSelesaiShift);
+                GajiLembur::where('presensi_id', $presensi->id)->delete();
             } else {
+                // NORMAL: Perhitungan biasa
+                $jamKerjaEfektifMenit = $presensi->calculateEffectiveWorkHours($jamKeluar);
                 if ($jamKeluar->greaterThan($jamSelesaiShift)) {
                     $totalMenitOvertime = $jamKeluar->diffInMinutes($jamSelesaiShift);
                     $batasLemburMin = $shift->batas_lembur_min ?? 30;
                     $menitOvertime = max(0, $totalMenitOvertime - $batasLemburMin);
-
                     if ($menitOvertime > 0) {
-                        $updateData['status_lembur'] = Presensi::STATUS_LEMBUR_OVERTIME;
-                        $jamLembur = round($menitOvertime / 60, 2);
-                        GajiLembur::updateOrCreate(
-                            ['presensi_id' => $presensi->id],
-                            ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => 'overtime', 'total_jam_lembur' => $jamLembur, 'keterangan_lembur' => "Overtime {$menitOvertime} menit"]
-                        );
+                        $statusLembur = Presensi::STATUS_LEMBUR_OVERTIME;
                     }
                 }
             }
-
-            $presensi->update($updateData);
             
-            DB::commit();
+            $updateData['jam_kerja_efektif'] = $jamKerjaEfektifMenit;
+            $updateData['status_lembur'] = $statusLembur;
+            $presensi->update($updateData);
 
-            return response()->json(['success' => true, 'message' => 'Check out berhasil!']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+            if ($menitOvertime > 0) {
+                $jamLembur = round($menitOvertime / 60, 2);
+                GajiLembur::updateOrCreate(
+                    ['presensi_id' => $presensi->id],
+                    ['users_id' => $presensi->users_id, 'tgl_lembur' => $presensi->tgl_presensi, 'tipe_lembur' => 'overtime', 'total_jam_lembur' => $jamLembur, 'keterangan_lembur' => "Overtime {$menitOvertime} menit"]
+                );
+            }
         }
-    }
 
+        DB::commit();
+        return response()->json(['success' => true, 'message' => 'Check out berhasil!']);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['error' => 'Terjadi kesalahan server: ' . $e->getMessage()], 500);
+    }
+}
 
     /**
      * Approve presensi (Admin only)
