@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             UsersTableSeeder::class,
             ShiftSeeder::class,
             JadwalShiftSeeder::class,
+            InventarisSeeder::class,
             // PresensiSeeder::class,
             // GajiLemburSeeder::class, 
             // GajiPokokSeeder::class,
