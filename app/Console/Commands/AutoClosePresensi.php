@@ -59,7 +59,7 @@ class AutoClosePresensi extends Command
             $presensi->update([
                 'jam_keluar' => $jamSelesaiShift,
                 'jam_kerja_efektif' => $jamKerjaEfektifMenit,
-                'status_approval' => Presensi::STATUS_APPROVAL_PENDING,"Auto Closed"
+                'status_approval' => Presensi::STATUS_APPROVAL_PENDING,
                 'status_lembur' => Presensi::STATUS_LEMBUR_NO,
                 'catatan_admin' => 'Ditutup otomatis oleh sistem karena lupa checkout. Perlu direview.'
             ]);

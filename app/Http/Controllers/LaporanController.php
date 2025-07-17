@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\RiwayatStok;
 use App\Models\BahanBaku;
-use Illuminate\Support\Facades\DB;
+use App\Models\RiwayatStok;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
@@ -19,48 +19,47 @@ class LaporanController extends Controller
             'tanggal_sampai' => 'nullable|date|after_or_equal:tanggal_dari',
         ]);
 
-        // 1. Ambil semua data bahan rusak sesuai filter tanggal
+        // 1. Buat query dasar untuk semua data rusak
         $query = RiwayatStok::with('bahanBaku', 'user')
-            ->where('tipe_mutasi', 'rusak')
-            ->latest();
+            ->where('tipe_mutasi', 'rusak');
 
-        if ($request->filled('tanggal_dari')) {
-            $query->whereDate('tanggal', '>=', $request->tanggal_dari);
-        }
-        if ($request->filled('tanggal_sampai')) {
-            $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
+        // --- Terapkan filter tanggal hanya jika diisi ---
+        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
+            $query->whereBetween('tanggal', [$request->tanggal_dari, $request->tanggal_sampai]);
         }
 
-        $itemsRusak = $query->paginate(20);
+        // --- Hitung total kerugian dari SEMUA data yang cocok dengan filter (SEBELUM pagination) ---
+        $semuaItemRusak = (clone $query)->get();
         $totalKerugian = 0;
 
-        // 2. Proses setiap item untuk menghitung nilai kerugiannya
-        foreach ($itemsRusak as $item) {
-            // Cari harga beli terakhir untuk bahan ini sebelum atau pada tanggal rusak
+        foreach ($semuaItemRusak as $item) {
             $hargaBeliTerakhir = RiwayatStok::where('bahan_baku_id', $item->bahan_baku_id)
                 ->where('tipe_mutasi', 'masuk')
                 ->where('tanggal', '<=', $item->tanggal)
                 ->latest('tanggal')
-                ->value('harga_satuan'); // Ambil hanya nilai harga_satuan
+                ->value('harga_satuan');
 
-            // Jika tidak ditemukan harga beli (misal, data stok awal), anggap harga 0
-            $hargaBeliTerakhir = $hargaBeliTerakhir ?? 0;
+            $totalKerugian += abs($item->kuantitas) * ($hargaBeliTerakhir ?? 0);
+        }
 
-            // Hitung nilai kerugian (kuantitas disimpan sebagai negatif, jadi kita gunakan abs())
-            $nilaiKerugian = abs($item->kuantitas) * $hargaBeliTerakhir;
-
-            // Tambahkan properti baru ke item untuk ditampilkan di view
-            $item->harga_saat_rusak = $hargaBeliTerakhir;
-            $item->nilai_kerugian = $nilaiKerugian;
-
-            // Akumulasi total kerugian
-            $totalKerugian += $nilaiKerugian;
+        // 2. Lakukan pagination pada query yang sama untuk ditampilkan di tabel
+        $itemsRusak = $query->latest()->paginate(20)->appends($request->query());
+        
+        // Proses ulang item yang dipaginasi untuk menambahkan properti yang akan ditampilkan
+        foreach ($itemsRusak as $item) {
+             $hargaBeliTerakhir = RiwayatStok::where('bahan_baku_id', $item->bahan_baku_id)
+                ->where('tipe_mutasi', 'masuk')
+                ->where('tanggal', '<=', $item->tanggal)
+                ->latest('tanggal')
+                ->value('harga_satuan');
+            $item->harga_saat_rusak = $hargaBeliTerakhir ?? 0;
+            $item->nilai_kerugian = abs($item->kuantitas) * $item->harga_saat_rusak;
         }
 
         return view('dashboard.laporan.kerugian', compact('itemsRusak', 'totalKerugian'));
     }
 
-/**
+    /**
      * LAPORAN 2:Menampilkan bahan baku yang paling banyak digunakan.
      */
     public function penggunaanBahan(Request $request)
@@ -73,20 +72,17 @@ class LaporanController extends Controller
         $query = RiwayatStok::where('tipe_mutasi', 'produksi')
             ->select(
                 'bahan_baku_id',
-                DB::raw('SUM(ABS(kuantitas)) as total_keluar') // Jumlahkan total keluar (gunakan ABS karena kuantitas negatif)
+                DB::raw('SUM(ABS(kuantitas)) as total_keluar')
             )
-            ->with('bahanBaku') // Eager load untuk mendapatkan nama bahan
+            ->with('bahanBaku')
             ->groupBy('bahan_baku_id')
-            ->orderBy('total_keluar', 'desc'); // Urutkan dari yang paling banyak keluar
+            ->orderBy('total_keluar', 'desc');
 
-        if ($request->filled('tanggal_dari')) {
+        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
             $query->whereDate('tanggal', '>=', $request->tanggal_dari);
         }
-        if ($request->filled('tanggal_sampai')) {
-            $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
-        }
 
-        $bahanTerlaris = $query->paginate(20);
+        $bahanTerlaris = $query->paginate(20)->appends($request->query());
 
         return view('dashboard.laporan.penggunaan', compact('bahanTerlaris'));
     }
@@ -101,33 +97,32 @@ class LaporanController extends Controller
             'tanggal_sampai' => 'nullable|date|after_or_equal:tanggal_dari',
         ]);
 
-        // Tentukan rentang tanggal, default 30 hari terakhir jika tidak diisi
-        $tanggalDari = $request->input('tanggal_dari', now()->subDays(30)->toDateString());
-        $tanggalSampai = $request->input('tanggal_sampai', now()->toDateString());
+        // --- PERBAIKAN: Definisikan variabel tanggal ---
+        $tanggalDari = $request->input('tanggal_dari');
+        $tanggalSampai = $request->input('tanggal_sampai');
 
-        // 1. Ambil semua ID bahan baku yang DIGUNAKAN pada periode tersebut
-        $bahanDigunakanIds = RiwayatStok::where('tipe_mutasi', 'produksi')
-            ->whereBetween('tanggal', [$tanggalDari, $tanggalSampai])
-            ->distinct()
-            ->pluck('bahan_baku_id');
+        $queryBahanDigunakan = RiwayatStok::where('tipe_mutasi', 'produksi');
+        
+        if ($tanggalDari && $tanggalSampai) {
+            $queryBahanDigunakan->whereBetween('tanggal', [$tanggalDari, $tanggalSampai]);
+        }
+        $bahanDigunakanIds = $queryBahanDigunakan->distinct()->pluck('bahan_baku_id');
 
-        // 2. Cari bahan baku yang TIDAK ADA di daftar ID di atas, dan masih punya stok
         $stokMati = BahanBaku::whereNotIn('id', $bahanDigunakanIds)
-            ->where('stok_terkini', '>', 0) // Hanya tampilkan yang masih ada stoknya
-        // subquery untuk mengambil tanggal penggunaan terakhir
-        ->addSelect(['terakhir_digunakan' => RiwayatStok::select('tanggal')
-            ->whereColumn('bahan_baku_id', 'bahan_baku.id')
-            ->where('tipe_mutasi', 'produksi')
-            ->latest('tanggal')
-            ->limit(1)
-        ])
+            ->where('stok_terkini', '>', 0)
+            ->addSelect(['terakhir_digunakan' => RiwayatStok::select('tanggal')
+                ->whereColumn('bahan_baku_id', 'bahan_baku.id')
+                ->where('tipe_mutasi', 'produksi')
+                ->latest('tanggal')
+                ->limit(1)
+            ])
             ->orderBy('nama')
-            ->paginate(20);
+            ->paginate(20)->appends($request->query());
 
+        // --- PERBAIKAN: Kirim variabel tanggal ke view ---
         return view('dashboard.laporan.stok-mati', compact('stokMati', 'tanggalDari', 'tanggalSampai'));
     }
 
-    
     /**
      * LAPORAN 4: Menampilkan bahan baku yang paling banyak masuk (pembelian).
      */
@@ -141,22 +136,18 @@ class LaporanController extends Controller
         $query = RiwayatStok::where('tipe_mutasi', 'masuk')
             ->select(
                 'bahan_baku_id',
-                DB::raw('SUM(kuantitas) as total_masuk') // Jumlahkan total masuk (kuantitas sudah positif)
+                DB::raw('SUM(kuantitas) as total_masuk')
             )
-            ->with('bahanBaku') // Eager load untuk mendapatkan nama bahan
+            ->with('bahanBaku')
             ->groupBy('bahan_baku_id')
-            ->orderBy('total_masuk', 'desc'); // Urutkan dari yang paling banyak masuk
+            ->orderBy('total_masuk', 'desc');
 
-        if ($request->filled('tanggal_dari')) {
+        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
             $query->whereDate('tanggal', '>=', $request->tanggal_dari);
         }
-        if ($request->filled('tanggal_sampai')) {
-            $query->whereDate('tanggal', '<=', $request->tanggal_sampai);
-        }
 
-        $bahanPalingMasuk = $query->paginate(20);
+        $bahanPalingMasuk = $query->paginate(20)->appends($request->query());
 
         return view('dashboard.laporan.penerimaan', compact('bahanPalingMasuk'));
     }
-
 }

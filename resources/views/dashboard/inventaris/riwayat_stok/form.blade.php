@@ -37,7 +37,7 @@
         </div>
         <div class="col-md-6 mb-3">
             <label for="tanggal" class="form-label">Tanggal Transaksi</label>
-            <input type="datetime-local" name="tanggal" id="tanggal" class="form-control" value="{{ old('tanggal', now()->format('Y-m-d\TH:i')) }}" required>
+           <input type="datetime-local" name="tanggal" id="tanggal" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" max="{{ now()->format('Y-m-d\TH:i') }}" required>
         </div>
     </div>
     <div class="row">

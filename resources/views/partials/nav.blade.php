@@ -116,6 +116,9 @@
                 </a>
 
                 <h6 class="menu-header">Manajemen Inventaris</h6>
+                <a href="{{ route('stok.pending') }}" class="menu-item {{ request()->is('dashboard/stok-approval*') ? 'active' : '' }}">
+                <i class="fas fa-check-double"></i><span>Persetujuan Stok</span>
+                </a>
                 <a href="{{ route('bahan-baku.index') }}" class="menu-item {{ request()->is('dashboard/bahan-baku*') ? 'active' : '' }}">
                     <i class="fas fa-boxes"></i><span>Bahan Baku</span>
                 </a>

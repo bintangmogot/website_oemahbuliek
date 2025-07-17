@@ -7,6 +7,7 @@ use App\Models\RiwayatStok;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class InventarisSeeder extends Seeder
 {
@@ -15,7 +16,16 @@ class InventarisSeeder extends Seeder
      */
     public function run(): void
     {
-        // Pastikan ada user Admin dan Pegawai untuk dicatat di riwayat
+        Schema::disableForeignKeyConstraints();
+
+        RiwayatStok::truncate();
+        BahanBaku::truncate();
+
+        // Aktifkan kembali foreign key check
+        Schema::enableForeignKeyConstraints();
+        $this->command->info('Tabel riwayat_stok dan bahan_baku telah dikosongkan.');
+        // ---------------------------------------------------------
+
         $admin = User::where('role', 'admin')->first();
         $pegawai = User::where('role', 'pegawai')->first();
 
@@ -24,68 +34,67 @@ class InventarisSeeder extends Seeder
             return;
         }
 
-        // Buat 15 jenis bahan baku menggunakan factory
         $bahanBakus = BahanBaku::factory(15)->create();
         $this->command->info('15 Bahan Baku berhasil dibuat.');
 
         foreach ($bahanBakus as $bahan) {
-            // Untuk setiap bahan baku, kita buat riwayat transaksinya
             $this->command->info("Membuat riwayat untuk: {$bahan->nama}");
             
-            // Gunakan DB Transaction untuk memastikan data konsisten
             DB::transaction(function () use ($bahan, $admin, $pegawai) {
                 $stokSaatIni = 0;
                 $hargaBeliTerakhir = 0;
 
-                // Buat 1 transaksi masuk sebagai data awal
-                $kuantitasMasuk = rand(5000, 10000);
-                $hargaBeliTerakhir = rand(50, 200) * 100; // Harga antara 5rb - 20rb
+                // PERUBAHAN: Kuantitas dan harga awal dibuat lebih bulat
+                $kuantitasMasuk = rand(50, 100) * 100; // Stok awal antara 5.000 - 10.000 (kelipatan 100)
+                $hargaBeliTerakhir = rand(10, 30) * 1000; // Harga awal antara 10.000 - 30.000 (kelipatan 1000)
                 
                 RiwayatStok::factory()->create([
-                    'bahan_baku_id' => $bahan->id,
-                    'user_id' => $admin->id,
-                    'tipe_mutasi' => 'masuk',
-                    'kuantitas' => $kuantitasMasuk,
-                    'harga_satuan' => $hargaBeliTerakhir,
-                    'tanggal' => now()->subMonths(6),
+                    'bahan_baku_id' => $bahan->id, 'user_id' => $admin->id,
+                    'tipe_mutasi' => 'masuk', 'kuantitas' => $kuantitasMasuk,
+                    'harga_satuan' => $hargaBeliTerakhir, 'status' => 'approved',
                 ]);
                 $stokSaatIni += $kuantitasMasuk;
 
-                // Buat 5 sampai 15 transaksi acak setelahnya
-                for ($i = 0; $i < rand(5, 15); $i++) {
+                for ($i = 0; $i < rand(10, 20); $i++) {
+                    $user = [$admin, $pegawai][rand(0, 1)];
                     $tipe = ['masuk', 'produksi', 'rusak'][rand(0, 2)];
-                    $user = [$admin->id, $pegawai->id][rand(0, 1)];
 
-                    if ($tipe === 'masuk') {
-                        $kuantitas = rand(1000, 5000);
-                        $hargaBeliTerakhir = $hargaBeliTerakhir + rand(-500, 500); // Harga berfluktuasi
-                        
-                        RiwayatStok::factory()->create([
-                            'bahan_baku_id' => $bahan->id,
-                            'user_id' => $user,
-                            'tipe_mutasi' => 'masuk',
-                            'kuantitas' => $kuantitas,
-                            'harga_satuan' => $hargaBeliTerakhir,
-                        ]);
-                        $stokSaatIni += $kuantitas;
-                    } else { // Jika produksi atau rusak
-                        // Pastikan stok cukup sebelum mengurangi
-                        if ($stokSaatIni > 500) {
-                            $kuantitas = -rand(100, 500); // Kuantitas keluar dibuat negatif
+                    if ($user->role === 'admin') {
+                        if ($tipe === 'masuk') {
+                            // PERUBAHAN: Kuantitas dan fluktuasi harga lebih bulat
+                            $kuantitas = rand(10, 50) * 100; // Kuantitas masuk 1.000 - 5.000 (kelipatan 100)
+                            $hargaBeliTerakhir += rand(-5, 5) * 100; // Fluktuasi harga kelipatan 100
                             
                             RiwayatStok::factory()->create([
-                                'bahan_baku_id' => $bahan->id,
-                                'user_id' => $user,
-                                'tipe_mutasi' => $tipe,
-                                'kuantitas' => $kuantitas,
-                                'harga_satuan' => null,
+                                'bahan_baku_id' => $bahan->id, 'user_id' => $user->id,
+                                'tipe_mutasi' => 'masuk', 'kuantitas' => $kuantitas,
+                                'harga_satuan' => $hargaBeliTerakhir, 'status' => 'approved',
                             ]);
                             $stokSaatIni += $kuantitas;
+                        } else {
+                            if ($stokSaatIni > 500) {
+                                // PERUBAHAN: Kuantitas keluar lebih bulat
+                                $kuantitas = - (rand(1, 5) * 100); // Kuantitas keluar 100 - 500 (kelipatan 100)
+                                RiwayatStok::factory()->create([
+                                    'bahan_baku_id' => $bahan->id, 'user_id' => $user->id,
+                                    'tipe_mutasi' => $tipe, 'kuantitas' => $kuantitas,
+                                    'harga_satuan' => null, 'status' => 'approved',
+                                ]);
+                                $stokSaatIni += $kuantitas;
+                            }
                         }
+                    } else { // Jika Pegawai, transaksi menjadi pending/rejected
+                        $kuantitas = ($tipe === 'masuk') ? rand(10, 50) * 100 : -(rand(1, 5) * 100);
+                        
+                        RiwayatStok::factory()->create([
+                            'bahan_baku_id' => $bahan->id, 'user_id' => $user->id,
+                            'tipe_mutasi' => $tipe, 'kuantitas' => $kuantitas,
+                            'harga_satuan' => ($tipe === 'masuk') ? $hargaBeliTerakhir + rand(-5, 5) * 100 : null,
+                            'status' => ['pending', 'rejected'][rand(0, 1)],
+                        ]);
                     }
                 }
 
-                // Setelah semua riwayat dibuat, update stok terkini di tabel bahan_baku
                 $bahan->stok_terkini = $stokSaatIni;
                 $bahan->save();
             });

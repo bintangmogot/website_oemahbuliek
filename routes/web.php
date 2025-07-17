@@ -87,6 +87,13 @@ Route::middleware('role:admin|pegawai')->name('profile.')->group(function () {
         Route::get('riwayat-stok/create', [RiwayatStokController::class, 'create'])->name('riwayat-stok.create');
     });
 
+        // Route baru untuk Approval (Hanya Admin)
+    Route::middleware('role:admin')->prefix('stok-approval')->name('stok.')->group(function() {
+        Route::get('/', [RiwayatStokController::class, 'indexPending'])->name('pending');
+        Route::patch('/{riwayatStok}/approve', [RiwayatStokController::class, 'approve'])->name('approve');
+        Route::patch('/{riwayatStok}/reject', [RiwayatStokController::class, 'reject'])->name('reject');
+    });
+
 
 // TABEL PENGATURAN GAJI
 Route::middleware('role:admin')->name('pengaturan_gaji.')->group(function(){
