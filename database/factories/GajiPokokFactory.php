@@ -15,12 +15,13 @@ class GajiPokokFactory extends Factory
     {
         // Pilih user aktif dengan pengaturan gaji
         $user = User::where('status', 1)
-                    ->has('pengaturanGaji')
-                    ->inRandomOrder()
-                    ->first();
+            ->has('pengaturanGaji')
+            ->inRandomOrder()
+            ->first();
 
-        // Format periode bulan YYYY-MM
-        $periode = Carbon::now()->subMonth()->format('Y-m');
+        // Format periode bulan YYYY-MM-DD
+        $periodDate = Carbon::now()->subMonths(rand(0, 5))->startOfMonth();
+        $periode = $periodDate->format('Y-m-d');
 
         // Random jumlah jam kerja antara 80.00 - 200.00
         $jumlahJamKerja = $this->faker->randomFloat(2, 80, 200);
@@ -38,27 +39,27 @@ class GajiPokokFactory extends Factory
         $totalGajiPokok = max(0, $gajiKotor - $totalPotongan);
 
         // Status pembayaran dan tanggal bayar
-        $status = $this->faker->randomElement([0,1,2]);
+        $status = $this->faker->randomElement([0, 1, 2]);
         $tglBayar = $status > 0 ? Carbon::now()->toDateString() : null;
 
         // Tambahan untuk kolom baru
-        $periodeStart = Carbon::parse($periode . '-01')->startOfMonth()->format('Y-m-d');
-        $periodeEnd = Carbon::parse($periode . '-01')->endOfMonth()->format('Y-m-d');
+        $periodeStart = $periodDate->copy()->startOfMonth()->format('Y-m-d');
+        $periodeEnd = $periodDate->copy()->endOfMonth()->format('Y-m-d');
 
         return [
-            'users_id'                 => $user->id,
-            'periode_start'            => $periodeStart,
-            'periode_end'              => $periodeEnd,
-            'periode_bulan'            => $periode,
-            'tarif_per_jam'            => $tarifKerja,
+            'users_id' => $user->id,
+            'periode_start' => $periodeStart,
+            'periode_end' => $periodeEnd,
+            'periode_bulan' => $periode,
+            'tarif_per_jam' => $tarifKerja,
             'tarif_potongan_per_menit' => $tarifPotong,
-            'jumlah_jam_kerja'         => $jumlahJamKerja,
-            'total_menit_terlambat'    => $totalMenitTerlambat,
-            'gaji_kotor'               => $gajiKotor,
-            'total_potongan'           => $totalPotongan,
-            'total_gaji_pokok'         => $totalGajiPokok,
-            'status_pembayaran'        => $status,
-            'tgl_bayar'                => $tglBayar,
+            'jumlah_jam_kerja' => $jumlahJamKerja,
+            'total_menit_terlambat' => $totalMenitTerlambat,
+            'gaji_kotor' => $gajiKotor,
+            'total_potongan' => $totalPotongan,
+            'total_gaji_pokok' => $totalGajiPokok,
+            'status_pembayaran' => $status,
+            'tgl_bayar' => $tglBayar,
         ];
     }
 }

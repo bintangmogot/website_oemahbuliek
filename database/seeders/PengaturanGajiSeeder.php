@@ -10,14 +10,14 @@ class PengaturanGajiSeeder extends Seeder
     {
         $pengaturanGaji = [
             [
-                'nama' => 'Staff Koki',
+                'nama' => 'Staff Koki Utama',
                 'tarif_kerja_per_jam' => 25000,
                 'tarif_lembur_per_jam' => 40000,
                 'potongan_terlambat_per_menit' => 500,
                 'status' => 1,
             ],
             [
-                'nama' => 'Staff Koki',
+                'nama' => 'Staff Koki Junior',
                 'tarif_kerja_per_jam' => 20000,
                 'tarif_lembur_per_jam' => 30000,
                 'potongan_terlambat_per_menit' => 400,
@@ -37,21 +37,17 @@ class PengaturanGajiSeeder extends Seeder
                 'potongan_terlambat_per_menit' => 350,
                 'status' => 1,
             ],
-            [
-                'nama' => 'Staff Kontrak Lama (Discontinued)',
-                'tarif_kerja_per_jam' => 10000,
-                'tarif_lembur_per_jam' => 12000,
-                'potongan_terlambat_per_menit' => 200,
-                'status' => 0,
-            ],
         ];
 
-        $factory = PengaturanGaji::factory()->count(10);
-        $factory->create();
-        // Reset unique untuk faker global
-        \Faker\Factory::create()->unique(true);
+        foreach ($pengaturanGaji as $pg) {
+            PengaturanGaji::updateOrCreate(['nama' => $pg['nama']], $pg);
+        }
 
-        $this->command->info('PengaturanGaji seeder completed: ' . count($pengaturanGaji) . ' pengaturan gaji created.');
+        // Create 5 more via factory if names don't collide
+        PengaturanGaji::factory()->count(5)->create();
+
+        $this->command->info('PengaturanGaji seeder completed.');
+
 
     }
 }

@@ -18,11 +18,11 @@ class ShiftSeeder extends Seeder
         Shift::firstOrCreate([
             'nama_shift' => 'Pagi',
         ], [
-            'jam_mulai'            => '07:00:00',
-            'jam_selesai'          => '15:00:00',
-            'toleransi_terlambat'  => 20,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 0,
+            'jam_mulai' => '07:00:00',
+            'jam_selesai' => '15:00:00',
+            'toleransi_terlambat' => 20,
+            'batas_lembur_min' => 30,
+            'is_shift_lembur' => 0,
             'status' => 1,
         ]);
 
@@ -40,77 +40,66 @@ class ShiftSeeder extends Seeder
         Shift::firstOrCreate([
             'nama_shift' => 'Malam',
         ], [
-            'jam_mulai'            => '22:00:00',
-            'jam_selesai'          => '23:59:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 60,
-            'is_shift_lembur'      => 1,
+            'jam_mulai' => '22:00:00',
+            'jam_selesai' => '23:59:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 60,
+            'is_shift_lembur' => 1,
             'status' => 1,
         ]);
 
-                Shift::firstOrCreate([
+        Shift::firstOrCreate([
             'nama_shift' => 'Lembur 1',
         ], [
-            'jam_mulai'            => '15:00:00',
-            'jam_selesai'          => '18:00:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 1,
+            'jam_mulai' => '15:00:00',
+            'jam_selesai' => '18:00:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 30,
+            'is_shift_lembur' => 1,
             'status' => 1,
         ]);
 
-                Shift::firstOrCreate([
+        Shift::firstOrCreate([
             'nama_shift' => 'Lembur 2',
         ], [
-            'jam_mulai'            => '17:00:00',
-            'jam_selesai'          => '20:00:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 1,
+            'jam_mulai' => '17:00:00',
+            'jam_selesai' => '20:00:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 30,
+            'is_shift_lembur' => 1,
             'status' => 1,
         ]);
 
-            Shift::firstOrCreate([
+        Shift::firstOrCreate([
             'nama_shift' => 'Overtime',
         ], [
-            'jam_mulai'            => '16:30:00',
-            'jam_selesai'          => '20:45:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 0,
-            'is_shift_lembur'      => 1,
+            'jam_mulai' => '16:30:00',
+            'jam_selesai' => '20:45:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 0,
+            'is_shift_lembur' => 1,
             'status' => 1,
         ]);
 
         Shift::firstOrCreate([
             'nama_shift' => 'Lembur shift',
         ], [
-            'jam_mulai'            => '16:30:00',
-            'jam_selesai'          => '16:45:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 1,
-            'status' => 1,
-        ]);
-
-                Shift::firstOrCreate([
-            'nama_shift' => 'normal aja',
-        ], [
-            'jam_mulai'            => '16:30:00',
-            'jam_selesai'          => '16:50:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 0,
+            'jam_mulai' => '16:30:00',
+            'jam_selesai' => '16:45:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 30,
+            'is_shift_lembur' => 1,
             'status' => 1,
         ]);
 
         Shift::firstOrCreate([
-            'nama_shift' => 'normal aja',
+            'nama_shift' => 'Normal 1',
         ], [
-            'jam_mulai'            => '16:30:00',
-            'jam_selesai'          => '16:50:00',
-            'toleransi_terlambat'  => 10,
-            'batas_lembur_min'     => 30,
-            'is_shift_lembur'      => 0,
+            'jam_mulai' => '16:30:00',
+            'jam_selesai' => '16:50:00',
+            'toleransi_terlambat' => 10,
+            'batas_lembur_min' => 30,
+            'is_shift_lembur' => 0,
             'status' => 1,
         ]);
         // 3 shift master

@@ -1,0 +1,27 @@
+
+   INFO  Seeding database.  
+
+🚀 Mulaikan database seeding...
+  Database\Seeders\PengaturanGajiSeeder  RUNNING  
+
+   Illuminate\Database\UniqueConstraintViolationException 
+
+  SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'Assistant Manager Junior' for key 'pengaturan_gaji_nama_unique' (Connection: mysql, SQL: insert into `pengaturan_gaji` (`nama`, `tarif_kerja_per_jam`, `tarif_lembur_per_jam`, `potongan_terlambat_per_menit`, `status`, `updated_at`, `created_at`) values (Assistant Manager Junior, 46000, 69000, 450, 1, 2026-03-02 20:22:05, 2026-03-02 20:22:05))
+
+  at vendor\laravel\framework\src\Illuminate\Database\Connection.php:824
+    820▕         // message to include the bindings with SQL, which will make this exception a
+    821▕         // lot more helpful to the developer instead of just the database's errors.
+    822▕         catch (Exception $e) {
+    823▕             if ($this->isUniqueConstraintError($e)) {
+  ➜ 824▕                 throw new UniqueConstraintViolationException(
+    825▕                     $this->getName(), $query, $this->prepareBindings($bindings), $e
+    826▕                 );
+    827▕             }
+    828▕
+
+  1   vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:45
+      PDOException::("SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'Assistant Manager Junior' for key 'pengaturan_gaji_nama_unique'")
+
+  2   vendor\laravel\framework\src\Illuminate\Database\MySqlConnection.php:45
+      PDOStatement::execute()
+

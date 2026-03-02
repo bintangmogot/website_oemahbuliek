@@ -19,16 +19,16 @@ class GajiPokokSeeder extends Seeder
 
         // 2) Siapkan 6 periode (Y-m) terakhir
         $dates = collect();
-        for ($i = 1; $i <= 6; $i++) {
+        for ($i = 0; $i < 6; $i++) {
             $dates->push(
-                Carbon::now()->subDays($i)->format('Y-m-d') // Format jadi tanggal
+                Carbon::now()->subMonths($i)->startOfMonth()->format('Y-m-d')
             );
         }
 
         // 3) Ambil semua user aktif yang punya pengaturanGaji
         $users = User::where('status', 1)
-                     ->has('pengaturanGaji')
-                     ->get();
+            ->has('pengaturanGaji')
+            ->get();
 
         // 4) Loop user × periode, hitung semua kolom, lalu firstOrCreate
         foreach ($users as $user) {
@@ -37,13 +37,13 @@ class GajiPokokSeeder extends Seeder
 
             foreach ($dates as $bulan) {
                 // Hitung data dummy
-                $jumlahJamKerja      = rand(100, 200);
+                $jumlahJamKerja = rand(100, 200);
                 $totalMenitTerlambat = rand(0, 300);
-                $gajiKotor           = $jumlahJamKerja * $tarifKerja;
-                $totalPotongan       = $totalMenitTerlambat * $tarifPotong;
-                $totalGajiPokok      = $gajiKotor - $totalPotongan;
-                $statusPembayaran    = rand(0, 2);
-                $tglBayar            = $statusPembayaran > 0
+                $gajiKotor = $jumlahJamKerja * $tarifKerja;
+                $totalPotongan = $totalMenitTerlambat * $tarifPotong;
+                $totalGajiPokok = $gajiKotor - $totalPotongan;
+                $statusPembayaran = rand(0, 2);
+                $tglBayar = $statusPembayaran > 0
                     ? Carbon::parse($bulan . '-01')->addDays(rand(1, 10))->toDateString()
                     : null;
 
@@ -53,21 +53,21 @@ class GajiPokokSeeder extends Seeder
 
                 GajiPokok::firstOrCreate(
                     [
-                        'users_id'      => $user->id,
+                        'users_id' => $user->id,
                         'periode_bulan' => $bulan,
                     ],
                     [
-                        'periode_start'            => $periodeStart,
-                        'periode_end'              => $periodeEnd,
-                        'tarif_per_jam'            => $tarifKerja,
+                        'periode_start' => $periodeStart,
+                        'periode_end' => $periodeEnd,
+                        'tarif_per_jam' => $tarifKerja,
                         'tarif_potongan_per_menit' => $tarifPotong,
-                        'jumlah_jam_kerja'         => $jumlahJamKerja,
-                        'total_menit_terlambat'    => $totalMenitTerlambat,
-                        'gaji_kotor'               => $gajiKotor,
-                        'total_potongan'           => $totalPotongan,
-                        'total_gaji_pokok'         => $totalGajiPokok,
-                        'status_pembayaran'        => $statusPembayaran,
-                        'tgl_bayar'                => $tglBayar,
+                        'jumlah_jam_kerja' => $jumlahJamKerja,
+                        'total_menit_terlambat' => $totalMenitTerlambat,
+                        'gaji_kotor' => $gajiKotor,
+                        'total_potongan' => $totalPotongan,
+                        'total_gaji_pokok' => $totalGajiPokok,
+                        'status_pembayaran' => $statusPembayaran,
+                        'tgl_bayar' => $tglBayar,
                     ]
                 );
             }

@@ -14,17 +14,17 @@ class PresensiFactory extends Factory
 
     public function definition()
     {
-        $tglPresensi = $this->faker->dateTimeBetween('-3 months', 'now')->format('Y-d');
-        
+        $tglPresensi = $this->faker->dateTimeBetween('-3 months', 'now')->format('Y-m-d');
+
         // Untuk menghindari masalah, kita akan set waktu default dulu
         // Nanti akan di-override di state atau di seeder dengan jadwal shift yang benar
         $jamMasuk = $tglPresensi . ' 08:00:00';
         $jamKeluar = $tglPresensi . ' 17:00:00';
-        
+
         // Status kehadiran default
         $statusKehadiran = 1; // Present
         $isAbsent = $this->faker->boolean(5); // 5% absent
-        
+
         if ($isAbsent) {
             $statusKehadiran = 0; // Absent
             $jamMasuk = null;
@@ -136,7 +136,7 @@ class PresensiFactory extends Factory
             // Parse jadwal shift
             $jamMasukShift = Carbon::parse($tanggal . ' ' . $jadwalShift->jam_masuk);
             $jamKeluarShift = Carbon::parse($tanggal . ' ' . $jadwalShift->jam_keluar);
-            
+
             // Handle shift malam (melewati tengah malam)
             if ($jamKeluarShift->lt($jamMasukShift)) {
                 $jamKeluarShift->addDay();
@@ -152,13 +152,13 @@ class PresensiFactory extends Factory
                     $menitTerlambat = $this->faker->randomElement([5, 10, 15, 20, 30, 45, 60, 90, 120]);
                     $jamMasukActual->addMinutes($menitTerlambat);
                     break;
-                    
+
                 case 'lembur':
                     // Tambahkan lembur 1-4 jam
                     $jamLembur = $this->faker->numberBetween(1, 4);
                     $jamKeluarActual->addHours($jamLembur);
                     break;
-                    
+
                 case 'normal':
                 default:
                     // Variasi kecil untuk realisme (-5 sampai +10 menit)
