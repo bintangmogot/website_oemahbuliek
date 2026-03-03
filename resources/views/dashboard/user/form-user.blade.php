@@ -115,7 +115,7 @@
     <label for="foto_profil" class="form-label">Foto Profil</label>
     @if($user && optional($user)->foto_profil)
       <div class="mb-2">
-        <img src="{{ asset('storage/'.optional($user)->foto_profil) }}" class="rounded-circle" width="100" height="100" style="object-fit:cover">
+        <img src="{{ Storage::url(optional($user)->foto_profil) }}" class="rounded-circle" width="100" height="100" style="object-fit:cover">
       </div>
     @endif
     <input type="file" name="foto_profil" id="foto_profil" class="form-control">

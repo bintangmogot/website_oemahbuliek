@@ -59,7 +59,7 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>
                                                 @if($jadwal->user->foto_profil)
-                                                    <img src="{{ asset('storage/'.$jadwal->user->foto_profil) }}" 
+                                                    <img src="{{ Storage::url($jadwal->user->foto_profil) }}" 
                                                          class="rounded-circle" 
                                                          width="40" height="40" 
                                                          style="object-fit:cover">

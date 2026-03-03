@@ -166,7 +166,7 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             @if($item->user->foto_profil)
-                                                <img src="{{ asset('storage/'.$item->user->foto_profil) }}" 
+                                                <img src="{{ Storage::url($item->user->foto_profil) }}" 
                                                      class="rounded-circle me-2" 
                                                      width="30" height="30" 
                                                      style="object-fit:cover">

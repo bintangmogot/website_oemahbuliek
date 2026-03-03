@@ -8,8 +8,8 @@
     $height = $size;
 @endphp
 
-@if ($src && file_exists(public_path('storage/' . $src)))
-    <img src="{{ asset('storage/' . $src) }}"
+@if ($src && Storage::disk('public')->exists($src))
+    <img src="{{ Storage::url($src) }}"
          class="rounded-circle mb-3"
          width="{{ $width }}" height="{{ $height }}"
          style="object-fit: cover"
