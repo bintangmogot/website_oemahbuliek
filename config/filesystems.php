@@ -38,8 +38,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'root' => base_path('unduhan'),
+            'url' => env('APP_URL') . '/unduhan',
             'visibility' => 'public',
             'throw' => false,
         ],
