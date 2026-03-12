@@ -1,66 +1,112 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/bu-liek" alt="Bintang Profile — Homepage Preview" width="720" />
 </p>
 
-## About Laravel
+# 🍱 Oemah Bu Liek - Restaurant Management System
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> Sistem Manajemen Terpadu untuk Oemah Bu Liek. Mengelola Inventaris, SDM, Penggajian, dan Laporan Operasional dalam satu platform.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+[![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com/)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🌟 Tentang Proyek
 
-## Learning Laravel
+**Oemah Bu Liek Restaurant Management System** adalah solusi digital untuk menyederhanakan proses bisnis harian. Aplikasi ini dirancang untuk membantu pemilik usaha dan pegawai dalam memantau stok bahan baku, mengatur jadwal giliran kerja (shift), mencatat presensi, hingga menghasilkan laporan penggajian secara otomatis.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## ✨ Fitur Utama
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Manajemen Inventaris**: Pantau stok bahan baku, persetujuan penyesuaian stok, dan riwayat mutasi barang.
+- **Manajemen SDM & Gaji**:
+    - Penjadwalan Shift Pegawai.
+    - Sistem Presensi (Kehadiran).
+    - Kalkulasi Gaji Pokok & Lembur otomatis.
+- **Sistem Laporan**:
+    - Laporan Kerugian Bahan Baku.
+    - Analisis Bahan Paling Dibutuhkan.
+    - Laporan Penerimaan Stok.
+- **Multi-Role Access**: Akses khusus untuk Admin (Owner/Manajer) dan Pegawai.
+- **Notifikasi Internal**: Pesan dan pengumuman untuk koordinasi tim.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 📸 Screenshot / Tampilan Layar
 
-## Laravel Sponsors
+### 🏠 Dashboard & Umum
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+| Dashboard Admin | Dashboard Pegawai |
+| :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/dashboard-admin" alt="Dashboard Admin" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/dashboard-employee" alt="Dashboard Pegawai" width="720" /> |
 
-### Premium Partners
+### 📦 Manajemen Inventaris
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+| Data Bahan Baku & Stok | Persetujuan Penyesuaian Stok | Riwayat Mutasi Stok |
+| :---: | :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/list-of-raw-material" alt="Bahan Baku" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/material-approval" alt="Persetujuan Stok" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/stock-mutation" alt="Riwayat Stok" width="720" /> |
 
-## Contributing
+### 👥 Manajemen SDM & Presensi
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+| Pengelolaan Data User | Penjadwalan Shift Pegawai | Sistem Presensi Pegawai |
+| :---: | :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/user-data" alt="Data Pegawai" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/employee-schedule" alt="Jadwal Shift" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/performance-form" alt="Presensi Pegawai" width="720" /> |
 
-## Code of Conduct
+### 💰 Sistem Penggajian
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Kalkulasi Gaji Pokok | Kalkulasi Gaji Lembur |
+| :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/salary-management" alt="Gaji Pokok" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/overtime-salary" alt="Gaji Lembur" width="720" /> |
 
-## Security Vulnerabilities
+### 📊 Laporan Analitik Operasional
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Laporan Kerugian Bahan Rusak | Laporan Bahan Paling Dibutuhkan |
+| :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/material-lost" alt="Laporan Kerugian" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/material-use" alt="Laporan Paling Dibutuhkan" width="720" /> |
 
-## License
+| Laporan Stok Belum Terpakai | Laporan Stok Masuk Terbanyak |
+| :---: | :---: |
+| <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/material-remaining" alt="Laporan Belum Terpakai" width="720" /> | <img src="https://res.cloudinary.com/workstation-/image/upload/f_auto,q_auto/oemah-bu-liek/material-receipt" alt="Laporan Stok Masuk" width="720" /> |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+## 💻 Tech Stack
+
+- **Backend:** Laravel 10+
+- **Frontend:** Blade Templating, Vanilla CSS, Bootstrap 5
+- **Database:** MySQL / MariaDB
+- **Tools:** Vite, Composer, NPM
+
+## 🚀 Panduan Instalasi
+
+1. **Clone repositori**
+    ```bash
+    git clone https://github.com/username-anda/website_oemahbuliek.git
+    cd website_oemahbuliek
+    ```
+2. **Install dependensi**
+    ```bash
+    composer install
+    npm install
+    npm run build
+    ```
+3. **Konfigurasi Environment**
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+    _Sesuaikan pengaturan database di file `.env`._
+4. **Migrasi & Seed Data**
+    ```bash
+    php artisan migrate --seed
+    ```
+5. **Jalankan aplikasi**
+    ```bash
+    php artisan serve
+    ```
+
+## 🔐 Akun Akses Default
+
+Setelah menjalankan seeder, gunakan akun berikut untuk masuk:
+
+- **Admin**: `admin@resto.test` / `password123`
+- **Pegawai**: `pegawai@resto.test` / `password123`
+
+## 📜 Lisensi
+
+Berlisensi di bawah [MIT License](LICENSE).
